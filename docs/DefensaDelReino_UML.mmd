@@ -1,0 +1,108 @@
+classDiagram
+    direction TB
+    class Juego {
+        -Mapa mapa
+        -Torre torre
+        -Estadisticas stats
+        -vector~Defensa*~ defensas
+        -int oro
+        +menu()
+        -jugar()
+        -prepararDefensas()
+        -ejecutarOleada(Oleada&)
+    }
+    class Mapa {
+        -char** celdas
+        -int* caminoFila
+        -int* caminoCol
+        -int filas
+        -int columnas
+        -int largoCamino
+        -aleatorio(min, max) int
+        -agregarCelda(f, c)
+        -avanzarTramo(dir, pasos)
+        -generarCamino()
+        +esLibre(f, c) bool
+        +colocarDefensa(f, c, simbolo) bool
+        +getFilaCamino(pos) int
+        +getColCamino(pos) int
+        +llegoAlFinal(pos) bool
+        +dibujar(vector~Enemigo*~&)
+    }
+    class Torre {
+        -int vida
+        -int vidamax
+        +recibirDanio(int)
+        +operator-=(int) Torre&
+        +estaDestruida() bool
+        +mostrarEstado()
+    }
+    class Estadisticas {
+        +guardar(...)
+        +mostrar()
+    }
+    class Oleada {
+        -int numero
+        -vector~Enemigo*~ enemigos
+        +getEnemigos() vector~Enemigo*~&
+        +avanzar()
+        +procesarLlegadas(Torre&, Mapa&) int
+        +eliminarMuertos() int
+        +terminada() bool
+    }
+    class Enemigo {
+        <<abstract>>
+        #string nombre
+        #int vida
+        #int velocidad
+        #int danio
+        #int recompensa
+        #int posicion
+        +avanzar()
+        +estaVivo() bool
+        +operator-(int) Enemigo&
+        +operator#lt;#lt;(ostream&, Enemigo&) ostream&
+        +simbolo()* char
+    }
+    class Goblin
+    class Orco
+    class Troll
+    class Defensa {
+        <<abstract>>
+        #string nombre
+        #int fila
+        #int columna
+        #int danio
+        #int rango
+        #int nivel
+        #int costo
+        +atacar(vector~Enemigo*~&, Mapa&)*
+        +simbolo()* char
+        +operator+=(int) Defensa&
+        +operator#lt;#lt;(ostream&, Defensa&) ostream&
+    }
+    class Arquero {
+        +atacar() golpea al 1ro en rango
+    }
+    class Canon {
+        +atacar() golpea a todos en rango
+    }
+    class Mago {
+        +atacar() golpea hasta 2 en rango
+    }
+
+    Juego *-- Mapa : composicion
+    Juego *-- Torre : composicion
+    Juego *-- Estadisticas : composicion
+    Juego o-- Defensa : agregacion
+    Juego ..> Oleada : usa
+    Oleada *-- Enemigo : composicion
+    Defensa --> Enemigo : asociacion (ataca)
+    Defensa ..> Mapa : usa
+    Mapa ..> Enemigo : dibuja
+    Enemigo <|-- Goblin
+    Enemigo <|-- Orco
+    Enemigo <|-- Troll
+    Defensa <|-- Arquero
+    Defensa <|-- Canon
+    Defensa <|-- Mago
