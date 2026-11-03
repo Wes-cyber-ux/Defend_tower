@@ -1,5 +1,7 @@
 #pragma once
 #include "Enemigo.h"
+#include <iostream>
+using namespace std;
 
 class Orco : public Enemigo 
 {   

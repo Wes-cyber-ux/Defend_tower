@@ -1,5 +1,8 @@
 #pragma once
+#include <iostream>
+#include <cstdlib>
 #include "Defensa.h"
+#include "../mapa/Mapa.h"
 using namespace std;
 
 class Mago : public Defensa {
@@ -13,7 +16,18 @@ public:
 
         for (Enemigo* e : enemigos) {
             if (!e->estaVivo()) continue;
-            if (enRango(e, mapa)) {
+
+            
+            int pos = e->getPosicion();
+            int fe = mapa.getFilaCamino(pos);
+            int ce = mapa.getColCamino(pos);
+            if (fe == -1 || ce == -1) continue;  
+
+            
+            int distancia = abs(fe - fila) + abs(ce - columna);
+
+           
+            if (distancia <= rango) {
                 *e - danio;
                 golpes++;
             }
