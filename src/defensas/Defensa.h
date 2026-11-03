@@ -2,10 +2,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "../enemigos/Enemigo.h"    
+#include <cstdlib>
+#include "../enemigos/Enemigo.h"
+#include "../mapa/Mapa.h"
 using namespace std;
-
-class Mapa;
 
 class Defensa {
 protected:
@@ -16,6 +16,15 @@ protected:
     int rango;
     int nivel;
     int costo;
+
+    // Distancia Manhattan entre la defensa y el enemigo (si esta en el camino)
+    bool enRango(const Enemigo* e, const Mapa& mapa) const {
+        int pos = e->getPosicion();
+        int fe = mapa.getFilaCamino(pos);
+        int ce = mapa.getColCamino(pos);
+        if (fe == -1 || ce == -1) return false;
+        return abs(fe - fila) + abs(ce - columna) <= rango;
+    }
 
 public:
     Defensa(string a, int b, int c, int d, int e, int f, int g) : nombre(a), fila(b), columna(c), danio(d), rango(e), nivel(f), costo(g) {}

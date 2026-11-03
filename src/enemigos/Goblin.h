@@ -1,7 +1,5 @@
 #pragma once
 #include "Enemigo.h"
-#include <iostream>
-using namespace std;
 
 
 class Goblin : public Enemigo 

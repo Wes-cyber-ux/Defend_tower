@@ -1,7 +1,5 @@
 #pragma once
 #include "Enemigo.h"
-#include <iostream>
-using namespace std;
 
 class Troll : public Enemigo 
 {
