@@ -1,0 +1,15 @@
+#pragma once
+#include "Enemigo.h"
+#include <iostream>
+using namespace std;
+
+class Troll : public Enemigo 
+{
+public:
+    Troll() : Enemigo("WoodTroll", 120, 1, 25, 40) {}
+
+    char simbolo() const override 
+    {
+        return 'W';
+    }
+};
