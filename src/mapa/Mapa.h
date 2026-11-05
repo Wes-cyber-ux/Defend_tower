@@ -144,7 +144,7 @@ public:
     void dibujar(const vector<Enemigo*>& enemigos) const {
         char** vista = new char*[filas];
         for (int i = 0; i < filas; i++) {
-            vista[i] = new char[columnas];
+            vista[i] = new char[static_cast<unsigned>(columnas)];
             for (int j = 0; j < columnas; j++) {
                 vista[i][j] = celdas[i][j];
             }

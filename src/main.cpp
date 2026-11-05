@@ -1,31 +1,56 @@
 #include <iostream>
 #include <vector>
 #include "mapa/Mapa.h"
+#include "torre/Torre.h"
+#include "oleada/Oleada.h"
 #include "enemigos/Goblin.h"
 #include "enemigos/Orco.h"
+#include "enemigos/Woodtroll.h"
+#include "defensas/Arquero.h"
+#include "defensas/Mago.h"
+#include "defensas/Canon.h"
 using namespace std;
 
+// Prueba de una oleada completa con un arquero (despues esto lo hara Juego)
 int main() {
     Mapa mapa(8, 20);
-    cout << "Largo del camino: " << mapa.getLargoCamino() << endl;
+    Torre torre(100);
+    Oleada oleada(1);
 
-    vector<Enemigo*> enemigos;
-    enemigos.push_back(new Goblin());
-    enemigos.push_back(new Orco());
+    // Buscar una celda libre pegada al camino para el arquero
+    int filaA = -1, colA = -1;
+    for (int pos = 3; pos < mapa.getLargoCamino() && filaA == -1; pos++) {
+        int f = mapa.getFilaCamino(pos);
+        int c = mapa.getColCamino(pos);
+        if (mapa.colocarDefensa(f - 1, c, 'A'))      { filaA = f - 1; colA = c; }
+        else if (mapa.colocarDefensa(f + 1, c, 'A')) { filaA = f + 1; colA = c; }
+    }
+    Arquero arquero(filaA, colA);
+    cout << arquero << endl;
 
-    // Colocar un arquero de prueba en una celda vacia
-    if (mapa.colocarDefensa(0, 5, 'A'))
-        cout << "Defensa colocada" << endl;
-    else
-        cout << "Esa celda esta ocupada" << endl;
+    int oro = 0;
+    int danioRecibido = 0;
+    int turno = 0;
 
-    // 10 turnos: los enemigos avanzan y se redibuja el mapa
-    for (int turno = 1; turno <= 14; turno++) {
+    while (!oleada.terminada() && !torre.estaDestruida() && turno < 50) {
+        turno++;
+        arquero.atacar(oleada.getEnemigos(), mapa);
+        oro += oleada.eliminarMuertos();
+        oleada.avanzarEnemigos();
+        danioRecibido += oleada.procesarLlegadas(torre, mapa);
+
         cout << "\n--- Turno " << turno << " ---" << endl;
-        mapa.dibujar(enemigos);
-        for (Enemigo* e : enemigos) e->avanzar();
+        mapa.dibujar(oleada.getEnemigos());
+        torre.mostrarEstado();
+        for (Enemigo* e : oleada.getEnemigos()) {
+            cout << *e << " | Faltan " << mapa.getLargoCamino() - e->getPosicion() << " casillas" << endl;
+        }
     }
 
-    for (Enemigo* e : enemigos) delete e;
+    cout << "\n=== Fin de la oleada ===" << endl;
+    cout << (torre.estaDestruida() ? "Perdiste" : "La torre resistio") << endl;
+    cout << "Turnos: " << turno << endl;
+    cout << "Oro ganado: " << oro << endl;
+    cout << "Danio recibido: " << danioRecibido << endl;
     return 0;
 }

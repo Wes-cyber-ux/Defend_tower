@@ -40,8 +40,7 @@ public:
 
     friend ostream& operator<<(ostream& os, const Enemigo& e) {
         os << e.simbolo() << " " << e.nombre
-           << " | Vida: " << e.vida
-           << " | Pos: (" << e.posicion << ")";
+           << " | Vida: " << e.vida;
         return os;               
     }
 
@@ -70,6 +69,11 @@ public:
 
     int getPosicion() const {
         return posicion;
+    }
+    //setter
+
+    void setPosicion(int p){
+        posicion = p;
     }
 
     virtual char simbolo() const = 0;

@@ -44,9 +44,6 @@ public:
         return os;               
     }
 
-
-
-
     // Getters
 
     string getNombre() const {
