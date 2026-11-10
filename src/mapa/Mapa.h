@@ -157,7 +157,15 @@ public:
             vista[caminoFila[pos]][caminoCol[pos]] = enemigos[k]->simbolo();
         }
 
+        // numeros de columna (decena arriba, unidad abajo) y de fila para ubicar defensas
+        cout << "   ";
+        for (int j = 0; j < columnas; j++) cout << j / 10 << ' ';
+        cout << endl;
+        cout << "   ";
+        for (int j = 0; j < columnas; j++) cout << j % 10 << ' ';
+        cout << endl;
         for (int i = 0; i < filas; i++) {
+            cout << i << (i < 10 ? "  " : " ");
             for (int j = 0; j < columnas; j++) {
                 cout << vista[i][j] << ' ';
             }
