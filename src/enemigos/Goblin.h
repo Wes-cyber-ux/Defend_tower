@@ -1,18 +1,15 @@
 #pragma once
 #include "Enemigo.h"
-#include <iostream>
-using namespace std;
 
+// Goblin: rapido y fragil. Cuando su vida baja de la mitad entra en panico
+// y corre una casilla extra por turno.
+class Goblin : public Enemigo {
+protected:
+    int pasosPorTurno() const override;
 
-class Goblin : public Enemigo 
-{
 public:
-    Goblin() : Enemigo("Goblin", 30, 2, 5, 10) {}
+    explicit Goblin(int nivel);
 
-    char simbolo() const override 
-    {
-        return 'G';
-    }
-
-
+    char simbolo() const override;
+    std::string habilidad() const override;
 };

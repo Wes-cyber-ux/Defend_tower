@@ -1,40 +1,18 @@
 #pragma once
-#include <iostream>
-#include <cstdlib>
 #include "Defensa.h"
-#include "../mapa/Mapa.h"
-using namespace std;
 
+// Canon: danio en area a TODOS los enemigos en rango, pero necesita
+// un turno de recarga entre disparos.
 class Canon : public Defensa {
+private:
+    int turnosRecarga;
+
 public:
-    Canon(int f, int c) : Defensa("Canon", f, c, 30, 2, 1, 150) {}
+    static constexpr int COSTO = 150;
 
+    Canon(int fila, int columna);
 
-    void atacar(vector<Enemigo*>& enemigos, const Mapa& mapa) override
-    {
-
-        for (Enemigo* e : enemigos) {
-            if (!e->estaVivo()) continue;
-
-            
-            int pos = e->getPosicion();
-            int fe = mapa.getFilaCamino(pos);
-            int ce = mapa.getColCamino(pos);
-            if (fe == -1 || ce == -1) continue;  
-
-            
-            int distancia = abs(fe - fila) + abs(ce - columna);
-
-           
-            if (distancia <= rango) {
-                *e - danio;
-            }
-
-        }
-    }
-
-    char simbolo() const override
-    {
-        return 'C';
-    }
+    int atacar(std::vector<Enemigo*>& enemigos, const Mapa& mapa) override;
+    char simbolo() const override;
+    std::string descripcion() const override;
 };

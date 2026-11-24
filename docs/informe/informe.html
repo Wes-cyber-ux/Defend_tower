@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Defensa del Reino: Juego de Estrategia en Consola Desarrollado con Programación Orientada a Objetos en C++</title>
+<style>
+  @page { size: 8.5in 11in; margin: 1in; }
+  body { font-family: "Times New Roman", serif; font-size: 12pt; line-height: 200%; }
+  p { margin: 0; text-indent: 0.5in; text-align: left; }
+  p.ni { text-indent: 0; }
+  p.c { text-indent: 0; text-align: center; }
+  h1 { font-size: 12pt; font-weight: bold; text-align: center; margin: 0; }
+  h2 { font-size: 12pt; font-weight: bold; text-align: left; margin: 0; }
+  h3 { font-size: 12pt; font-weight: bold; font-style: italic; text-align: left; margin: 0; }
+  .titulo { font-size: 12pt; font-weight: bold; text-align: center; text-indent: 0; }
+  .tabnum { font-weight: bold; text-indent: 0; margin-top: 12pt; }
+  .tabtit { font-style: italic; text-indent: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 0; }
+  th, td { font-family: "Times New Roman", serif; font-size: 11pt; line-height: 115%; padding: 3pt 5pt; vertical-align: top; text-align: left; }
+  th { border-top: 1pt solid black; border-bottom: 1pt solid black; font-weight: bold; }
+  tr.ultima td { border-bottom: 1pt solid black; }
+  .nota { text-indent: 0; font-size: 11pt; line-height: 150%; margin-bottom: 12pt; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 9.5pt; line-height: 115%; margin: 6pt 0 6pt 0.5in; }
+  .ref { text-indent: -0.5in; margin-left: 0.5in; }
+  .pend { background: yellow; }
+</style>
+</head>
+<body>
+
+<!-- ======================= PORTADA (APA 7, version estudiante) ======================= -->
+<p class="c">&nbsp;</p>
+<p class="c">&nbsp;</p>
+<p class="c">&nbsp;</p>
+<p class="titulo">Defensa del Reino: Juego de Estrategia en Consola Desarrollado con Programación Orientada a Objetos en C++</p>
+<p class="c">&nbsp;</p>
+<p class="c">Cristopher Aron Lopez Garay, Wesley Rivaldo Laura Choquejahua, Ernesto Sebastian Davila Quichca, Gonzalo Alejandro Ugaz Espinoza y Santiago Nicolás Villacorta Nacurena</p>
+<p class="c">Departamento de Ciencia de la Computación, Universidad de Ingeniería y Tecnología (UTEC)</p>
+<p class="c">Programación II – Laboratorio (2026-2)</p>
+<p class="c">Docente: <span class="pend">[Nombre del docente]</span></p>
+<p class="c"><span class="pend">24 de noviembre de 2026</span></p>
+
+<br clear="all" style="page-break-before:always">
+
+<!-- ======================= CUERPO ======================= -->
+<p class="titulo">Defensa del Reino: Juego de Estrategia en Consola Desarrollado con Programación Orientada a Objetos en C++</p>
+
+<p>Este informe documenta el diseño y la implementación de <i>Defensa del Reino</i>, un videojuego de estrategia del género <i>tower defense</i> que se ejecuta en la consola y está escrito en C++ bajo el paradigma de programación orientada a objetos (POO). El proyecto responde al enunciado del curso Programación II, que pide un menú principal con tres opciones (jugar, ver estadísticas y salir), un mapa en caracteres ASCII, diez oleadas de enemigos de nivel creciente, defensas que se pueden colocar y mejorar, y un historial de partidas guardado en un archivo. Además, el enunciado exige aplicar clases, punteros, arreglos, matrices, vectores, las cuatro relaciones entre clases (asociación, agregación, composición y herencia), el polimorfismo por herencia y la sobrecarga de operadores, con la restricción de que todo el código esté dentro de clases y de que la función <code>main</code> solo invoque el menú.</p>
+
+<h1>Integrantes</h1>
+<p>El proyecto fue desarrollado por un equipo de cinco estudiantes de la carrera de Ciencia de la Computación. Aunque cada integrante tuvo un área principal (Tabla 1), todos revisaron el código de los demás, de modo que cualquiera puede explicar cualquier parte del programa.</p>
+<p class="tabnum">Tabla 1</p>
+<p class="tabtit">Distribución del Trabajo entre los Integrantes</p>
+<table>
+<tr><th style="width:32%">Integrante</th><th>Responsabilidades principales</th></tr>
+<tr><td>Cristopher Aron Lopez Garay</td><td>Clase <code>Juego</code>: menú principal, fase de preparación, tienda y bucle de oleadas.</td></tr><tr><td>Wesley Rivaldo Laura Choquejahua</td><td>Estructura del repositorio, integración de ramas en GitHub y clases <code>Torre</code> y <code>Jugador</code>.</td></tr><tr><td>Ernesto Sebastian Davila Quichca</td><td>Primer avance: jerarquías <code>Enemigo</code> y <code>Defensa</code>, <code>Mapa</code> y <code>Oleada</code> inicial.</td></tr><tr><td>Gonzalo Alejandro Ugaz Espinoza</td><td>Clases <code>Estadisticas</code> y <code>Partida</code>: lectura y escritura del archivo de historial.</td></tr><tr class="ultima"><td>Santiago Nicolás Villacorta Nacurena</td><td>Diagrama de clases, diagrama de flujo, informe y presentación.</td></tr></table>
+<p class="nota"><i>Nota.</i> Todos los integrantes participaron en las pruebas, la revisión cruzada del código y la preparación de la exposición.</p>
+<h1>Antecedentes</h1>
+
+<h2>Contexto</h2>
+<p>Los juegos de defensa de torres (<i>tower defense</i>) son un subgénero de la estrategia en el que el jugador no controla directamente a sus unidades: coloca estructuras defensivas junto a un camino por el que avanzan oleadas de enemigos y debe impedir que estos alcancen un objetivo. Avery et al. (2011) señalan que el género es un buen banco de pruebas para la computación porque combina reglas simples con un espacio de decisiones amplio: dónde construir, qué tipo de defensa elegir y cuándo invertir en mejoras. En el enunciado del proyecto, el reino ficticio de Eldoria es atacado por hordas que siguen un camino fijo hacia la torre central, y el jugador asume el papel del comandante que organiza la defensa.</p>
+
+<h2>Motivación</h2>
+<p>El juego es una excusa didáctica muy adecuada para la POO, porque sus elementos se corresponden de forma natural con objetos que tienen estado y comportamiento: la torre tiene vida, las defensas tienen daño y alcance, y los enemigos se mueven y reciben daño. Las variantes de un mismo concepto, como los distintos tipos de enemigo y de defensa, piden herencia y polimorfismo. Las interacciones entre los elementos (una defensa que apunta a un enemigo, un mapa que muestra las defensas, una oleada que crea y destruye a sus enemigos) obligan a distinguir con precisión entre asociación, agregación y composición. Por último, el historial de partidas introduce la persistencia mediante archivos.</p>
+
+<h2>Justificación</h2>
+<p>Implementar un sistema completo, y no ejercicios aislados, obliga a tomar decisiones de diseño reales: quién es dueño de cada objeto y quién debe liberar su memoria, cómo se evita la dependencia circular entre clases, cómo se valida la entrada del usuario y cómo se equilibra la dificultad para que el juego sea retador pero ganable. Estas decisiones son el núcleo de la competencia que el curso busca desarrollar y se documentan en las secciones siguientes.</p>
+
+<h1>Fundamento Teórico</h1>
+
+<h2>Programación Orientada a Objetos</h2>
+<p>La POO organiza un programa como un conjunto de objetos que cooperan, cada uno instancia de una clase que define sus atributos (estado) y métodos (comportamiento) (Stroustrup, 2013). Sus pilares son el <b>encapsulamiento</b>, que oculta el estado interno detrás de una interfaz pública mediante los modificadores <code>private</code>, <code>protected</code> y <code>public</code>; la <b>abstracción</b>, que expone solo lo esencial de un concepto; la <b>herencia</b>, que permite definir una clase a partir de otra, y el <b>polimorfismo</b>, que permite tratar de forma uniforme objetos de clases distintas (Deitel y Deitel, 2017; Joyanes Aguilar, 2006).</p>
+
+<h2>Herencia, Clases Abstractas y Polimorfismo</h2>
+<p>La herencia modela una relación «es un»: un <code>Goblin</code> es un <code>Enemigo</code>. Una clase es <b>abstracta</b> cuando declara al menos una función virtual pura (<code>virtual char simbolo() const = 0;</code>), por lo que no puede instanciarse y solo sirve como base. El <b>polimorfismo dinámico</b> en C++ se logra con funciones <code>virtual</code> invocadas a través de punteros o referencias a la clase base: el método que se ejecuta se decide en tiempo de ejecución según el tipo real del objeto (enlace dinámico). Por ese mismo motivo, una clase base polimórfica debe tener un destructor virtual; si no, al hacer <code>delete</code> mediante un puntero a la base no se ejecutaría el destructor de la clase derivada (Stroustrup, 2013).</p>
+
+<h2>Relaciones entre Clases</h2>
+<p>El Lenguaje Unificado de Modelado (UML) distingue varios tipos de relación (Booch et al., 2005; Object Management Group, 2017). La <b>asociación</b> es un vínculo estructural en el que un objeto conoce a otro y puede enviarle mensajes, sin que ninguno controle la vida del otro. La <b>agregación</b> es una asociación «todo-parte» débil: el todo referencia a sus partes, pero estas pueden existir sin él. La <b>composición</b> es una relación «todo-parte» fuerte: las partes son creadas y destruidas por el todo y no lo sobreviven. La <b>dependencia</b> indica un uso temporal, por ejemplo cuando un objeto recibe a otro como parámetro.</p>
+
+<h2>Sobrecarga de Operadores</h2>
+<p>C++ permite redefinir el significado de la mayoría de los operadores para tipos definidos por el usuario, siempre que al menos un operando sea de ese tipo (cppreference.com, s.f.-a). La sobrecarga puede implementarse como método miembro (el operando izquierdo es <code>*this</code>) o como función amiga (<code>friend</code>), que es necesaria cuando el operando izquierdo no pertenece a la clase, como ocurre en <code>operator&lt;&lt;(std::ostream&amp;, const T&amp;)</code>. Los operadores compuestos como <code>+=</code> y <code>-=</code> devuelven por convención una referencia a <code>*this</code> para permitir el encadenamiento.</p>
+
+<h2>Gestión de Memoria Dinámica y Regla de Tres</h2>
+<p>Los operadores <code>new</code> y <code>delete</code> reservan y liberan memoria en el montículo (<i>heap</i>). Una matriz dinámica se construye como un arreglo de punteros (<code>char**</code>) en el que cada fila es a su vez un arreglo. Cuando una clase administra un recurso de este tipo, la <b>regla de tres</b> establece que, si necesita un destructor propio, también necesita definir o prohibir el constructor de copia y el operador de asignación; de lo contrario, la copia superficial produce dos objetos que liberan la misma memoria (doble <code>delete</code>) (cppreference.com, s.f.-b).</p>
+
+<h2>Archivos y Flujos</h2>
+<p>La biblioteca <code>&lt;fstream&gt;</code> ofrece las clases <code>ifstream</code> y <code>ofstream</code> para leer y escribir archivos con la misma interfaz que <code>cin</code> y <code>cout</code>. El modo <code>std::ios::app</code> agrega datos al final sin borrar el contenido previo, lo que resulta adecuado para un historial (Deitel y Deitel, 2017). Sobrecargar <code>&lt;&lt;</code> y <code>&gt;&gt;</code> para una clase permite serializarla y deserializarla de forma simétrica.</p>
+
+<h2>Bucle de Juego</h2>
+<p>Un videojuego se estructura alrededor de un bucle principal que, en cada iteración, procesa la entrada, actualiza el estado del mundo y lo dibuja (Nystrom, 2014). En un juego por turnos como este, cada iteración del bucle de una oleada equivale a un turno en el que las entidades actúan en un orden fijo y determinista.</p>
+
+<h1>Métodos y Desarrollo</h1>
+
+<h2>Metodología de Trabajo</h2>
+<p>El equipo trabajó de forma incremental con el sistema de control de versiones Git y un repositorio compartido en GitHub, con una rama por integrante que se integraba a la rama principal mediante <i>pull requests</i>. En un primer avance se construyeron las jerarquías de enemigos y defensas, la torre, el mapa y una oleada inicial. Después se completaron el controlador del juego, las estadísticas y el guardado en archivo, se separó cada clase en archivo de cabecera (<code>.h</code>) e implementación (<code>.cpp</code>) y se agregó un archivo <code>CMakeLists.txt</code> para compilar en distintos entornos. El desarrollo se realizó en Visual Studio Code con el compilador g++ 15 de MSYS2 (estándar C++17). El código se verificó con advertencias estrictas del compilador (<code>-Wall -Wextra -Wpedantic</code>) y con los detectores de errores de memoria AddressSanitizer y UndefinedBehaviorSanitizer, y se probó tanto en Linux como en Windows.</p>
+
+
+
+<h2>Arquitectura y Diagrama de Clases</h2>
+<p>El sistema consta de 16 clases distribuidas en 33 archivos fuente (unas 1 800 líneas). La Figura 1 muestra el diagrama de clases en notación UML con la jerarquía y todas las relaciones. La clase <code>Juego</code> es el controlador: contiene el menú, el estado de la partida y el bucle de oleadas. La función <code>main</code> se limita a crear un objeto <code>Juego</code> y llamar a su método <code>menu()</code>, tal como exige el enunciado.</p>
+
+<p class="tabnum">Figura 1</p>
+<p class="tabtit">Diagrama de Clases de Defensa del Reino</p>
+<p class="c" style="line-height:100%"><img src="../DefensaDelReino_UML.png" width="624" height="491" alt="Diagrama de clases UML"></p>
+<p class="nota"><i>Nota.</i> Los nombres en cursiva corresponden a clases abstractas y a métodos virtuales puros. <code>+</code> = público, <code>-</code> = privado, <code>#</code> = protegido. Elaboración propia.</p>
+
+<p>La Tabla 2 explica cada relación y cómo se refleja en el código, que es el criterio usado para distinguirlas: quién crea el objeto, quién lo destruye y si la vida de uno depende de la del otro.</p>
+
+<p class="tabnum">Tabla 2</p>
+<p class="tabtit">Relaciones entre Clases y su Implementación</p>
+<table>
+<tr><th style="width:17%">Relación</th><th style="width:28%">Clases</th><th>Evidencia en el código</th></tr>
+<tr><td>Herencia</td><td><code>Enemigo</code> → Goblin, Orco, Troll<br><code>Defensa</code> → Arquero, Mago, Canon</td><td><code>class Goblin : public Enemigo</code>. Las bases son abstractas (tienen métodos virtuales puros) y su destructor es virtual.</td></tr>
+<tr><td>Composición</td><td><code>Juego</code> ◆ Mapa, Torre, Jugador, Estadisticas</td><td>Son atributos por valor: se construyen y destruyen junto con <code>Juego</code>.</td></tr>
+<tr><td>Composición</td><td><code>Juego</code> ◆ Defensa</td><td><code>Juego</code> crea cada defensa con <code>new</code> y la destruye con <code>delete</code> en <code>liberarDefensas()</code>.</td></tr>
+<tr><td>Composición</td><td><code>Oleada</code> ◆ Enemigo</td><td>El constructor de <code>Oleada</code> crea los enemigos y su destructor los libera: al terminar la oleada, sus enemigos desaparecen.</td></tr>
+<tr><td>Composición</td><td><code>Estadisticas</code> ◆ Partida</td><td><code>vector&lt;Partida&gt;</code> que guarda los registros por valor.</td></tr>
+<tr><td>Agregación</td><td><code>Mapa</code> ◇ Defensa</td><td><code>Mapa</code> guarda <code>vector&lt;Defensa*&gt;</code> para dibujarlas y validar casillas, pero nunca las elimina, porque pertenecen a <code>Juego</code>.</td></tr>
+<tr><td>Asociación</td><td><code>Defensa</code> → Enemigo</td><td>Atributo <code>Enemigo* objetivo</code>: la defensa recuerda a quién apunta entre turnos. El Arquero lo usa para perseguir siempre al mismo enemigo.</td></tr>
+<tr class="ultima"><td>Dependencia</td><td><code>Juego</code> ⇢ Oleada; <code>Defensa</code> ⇢ Mapa; <code>Oleada</code> ⇢ Torre</td><td>Uso temporal: un objeto local o un parámetro de método.</td></tr>
+</table>
+<p class="nota"><i>Nota.</i> ◆ = composición, ◇ = agregación, → = asociación, ⇢ = dependencia.</p>
+
+<h2>Elementos del Juego</h2>
+<p>Cada tipo de enemigo y de defensa redefine uno o más métodos virtuales, lo que satisface el requisito de que cada enemigo tenga su propio comportamiento y de que el método <code>atacar</code> varíe según el tipo de defensa. La Tabla 3 resume sus características.</p>
+
+<p class="tabnum">Tabla 3</p>
+<p class="tabtit">Tipos de Enemigos y Defensas</p>
+<table>
+<tr><th style="width:15%">Clase</th><th style="width:34%">Valores base (nivel 1)</th><th>Comportamiento polimórfico</th></tr>
+<tr><td>Goblin (G)</td><td>Vida 30, velocidad 2, daño 5, oro 4</td><td>Redefine <code>pasosPorTurno()</code>: con menos de la mitad de vida entra en pánico y corre una casilla extra.</td></tr>
+<tr><td>Orco (O)</td><td>Vida 70, velocidad 1, daño 12, oro 8</td><td>Redefine <code>danioEfectivo()</code>: su armadura (2 + nivel) reduce cada golpe.</td></tr>
+<tr><td>Troll (W)</td><td>Vida 150, velocidad 1, daño 25, oro 15</td><td>Redefine <code>avanzar()</code>: regenera el 4 % de su vida máxima cada turno.</td></tr>
+<tr><td>Arquero (A)</td><td>Costo 50, daño 15, rango 4</td><td>Fija un objetivo (asociación) y lo ataca mientras siga vivo y en rango.</td></tr>
+<tr><td>Mago (M)</td><td>Costo 90, daño 20, rango 3</td><td>Golpea a los dos enemigos más adelantados y los congela un turno.</td></tr>
+<tr class="ultima"><td>Cañón (C)</td><td>Costo 150, daño 30, rango 2</td><td>Daño en área a todos los enemigos en rango; necesita un turno de recarga.</td></tr>
+</table>
+<p class="nota"><i>Nota.</i> El nivel del enemigo es igual al número de la oleada. Por cada nivel aumenta su vida en 35 %, su daño en 25 % y su recompensa en 1; desde la oleada 7 su velocidad sube en 1. Cada mejora de una defensa (operador <code>+=</code>) suma 10 de daño y, en los niveles 2 y 4, una casilla de alcance (nivel máximo 4).</p>
+
+<h2>Sobrecarga de Operadores</h2>
+<p>Se sobrecargaron operadores en siete clases, siempre con un significado intuitivo dentro del dominio del juego (Tabla 4). Por ejemplo, el daño a un enemigo se escribe <code>*objetivo - danio;</code>, tal como sugiere el enunciado, y la mejora de una defensa se escribe <code>*defensa += 1;</code>.</p>
+
+<p class="tabnum">Tabla 4</p>
+<p class="tabtit">Operadores Sobrecargados</p>
+<table>
+<tr><th style="width:22%">Clase</th><th style="width:22%">Operador</th><th>Significado</th></tr>
+<tr><td><code>Enemigo</code></td><td><code>-</code>, <code>&gt;</code>, <code>&lt;&lt;</code></td><td>Aplica daño; compara qué enemigo está más adelantado (se usa para ordenar objetivos); muestra su información.</td></tr>
+<tr><td><code>Defensa</code></td><td><code>+=</code>, <code>&lt;&lt;</code></td><td>Sube de nivel (más daño y alcance); muestra su información.</td></tr>
+<tr><td><code>Torre</code></td><td><code>-=</code>, <code>&lt;&lt;</code></td><td>Recibe daño; dibuja una barra de vida con color.</td></tr>
+<tr><td><code>Jugador</code></td><td><code>+=</code>, <code>-=</code>, <code>&lt;&lt;</code></td><td>Gana oro; gasta oro (nunca queda negativo); muestra nombre y oro.</td></tr>
+<tr><td><code>Oleada</code></td><td><code>[]</code>, <code>&lt;&lt;</code></td><td>Acceso al i-ésimo enemigo con control de límites; resumen de la oleada.</td></tr>
+<tr class="ultima"><td><code>Partida</code></td><td><code>&lt;&lt;</code>, <code>&gt;&gt;</code>, <code>&lt;</code></td><td>Escribe y lee una línea del archivo de historial; compara puntajes para el ranking.</td></tr>
+</table>
+
+<h2>Uso de Punteros, Arreglos, Matrices y Vectores</h2>
+<p>El terreno del mapa es una <b>matriz dinámica</b> <code>char** celdas</code> de 10 × 24 creada con <code>new</code>, y las coordenadas del camino se almacenan en dos <b>arreglos dinámicos</b> paralelos (<code>int* caminoFila</code> e <code>int* caminoCol</code>). La tienda usa un <b>arreglo estático</b> de precios. Los <b>vectores</b> almacenan <b>punteros a la clase base</b> (<code>vector&lt;Enemigo*&gt;</code> y <code>vector&lt;Defensa*&gt;</code>), que es lo que permite el polimorfismo. Las clases que administran memoria dinámica (<code>Mapa</code>, <code>Oleada</code> y <code>Juego</code>) prohíben la copia con <code>= delete</code> para cumplir la regla de tres.</p>
+
+<h2>Lógica del Juego</h2>
+<h3>Generación del Mapa</h3>
+<p>Al iniciar cada partida, el mapa genera un camino aleatorio: parte de una fila al azar en la columna 0 y alterna tramos horizontales hacia la derecha (de 2 a 5 casillas) con tramos verticales (de 1 a 3 casillas) hasta llegar a la última columna, donde se ubica la torre (T). Como el camino nunca retrocede, no se cruza consigo mismo y el algoritmo siempre termina. La entrada se marca con E, que es la posición inicial de los enemigos.</p>
+
+<h3>Flujo de una Partida</h3>
+<p>La Figura 2 resume el algoritmo completo del programa, desde el menú principal hasta el registro de la partida. Desde el menú principal, la opción «Jugar» pide el nombre del comandante y si se desea ver las oleadas animadas. La partida tiene 10 oleadas. Antes de cada una, en la fase de preparación, el jugador ve el mapa con coordenadas y puede colocar defensas, mejorarlas, revisar su lista o consultar los enemigos que se acercan. Al superar una oleada recibe un bono de 30 + 5<i>n</i> monedas de oro, donde <i>n</i> es el número de oleada. Si la torre resiste las 10 oleadas, el jugador gana; si su vida llega a 0, pierde. En ambos casos el resultado se agrega al archivo <code>historial.txt</code> y el programa vuelve al menú.</p>
+
+<p class="tabnum">Figura 2</p>
+<p class="tabtit">Diagrama de Flujo de una Ejecución del Programa</p>
+<p class="c" style="line-height:100%"><img src="../DiagramaFlujo_Partida.png" width="600" height="454" alt="Diagrama de flujo"></p>
+<p class="nota"><i>Nota.</i> Los rombos son decisiones, los rectángulos son procesos y los paralelogramos son entradas o salidas (pantalla y archivo). El ciclo de la izquierda repite la preparación y la oleada hasta completar 10 oleadas. Elaboración propia.</p>
+
+<h3>Algoritmo de un Turno</h3>
+<p>Cada oleada se ejecuta en un bucle de turnos que termina cuando todos los enemigos fueron eliminados o llegaron a la torre, o cuando la torre es destruida. En cada turno ocurren cinco pasos en orden fijo:</p>
+<pre>while (!oleada.terminada() &amp;&amp; !torre.estaDestruida()) {
+    oleada.liberarSiguiente();                      // 1. entra un enemigo
+    for (Defensa* d : defensas)                     // 2. atacan las defensas
+        d-&gt;atacar(oleada.getEnemigos(), mapa);      //    (polimorfismo)
+    jugador += oleada.cobrarRecompensas(bajas);     // 3. oro por eliminados
+    oleada.avanzar();                               // 4. se mueven (polimorfismo)
+    oleada.procesarLlegadas(mapa, torre);           // 5. danan la torre
+}</pre>
+<p>La línea <code>d-&gt;atacar(...)</code> muestra el polimorfismo: <code>d</code> es un <code>Defensa*</code>, pero en tiempo de ejecución se invoca el <code>atacar</code> del Arquero, del Mago o del Cañón según el objeto real. Del mismo modo, <code>oleada.avanzar()</code> llama a <code>avanzar()</code> en cada enemigo, y el Troll ejecuta su versión con regeneración. Las defensas eligen su objetivo con la distancia Manhattan, |Δfila| + |Δcolumna| ≤ rango, y priorizan al enemigo más adelantado en el camino. La Figura 3 muestra un turno real de la oleada 5: los enemigos (G, O, W) salen de la entrada E, las defensas (A, M, C) los atacan desde los costados del camino (#) y debajo del mapa se ve la vida de cada enemigo.</p>
+
+<p class="tabnum">Figura 3</p>
+<p class="tabtit">Captura del Juego durante la Oleada 5 (Modo Animado)</p>
+<p class="c" style="line-height:100%"><img src="../captura_oleada.png" width="600" height="373" alt="Captura de la consola"></p>
+<p class="nota"><i>Nota.</i> Salida real del programa en la consola. Los colores se obtienen con secuencias de escape ANSI desde la clase <code>Consola</code>. Elaboración propia.</p>
+
+<h3>Ciclo de Vida de los Enemigos y Seguridad de Memoria</h3>
+<p>Cada enemigo pasa por los estados <code>EnEspera</code>, <code>EnCamino</code> y, al final, <code>Eliminado</code> o <code>LlegoATorre</code> (enumeración <code>EstadoEnemigo</code>). Los enemigos eliminados no se borran durante la oleada; solo cambian de estado. De esa forma, el puntero <code>objetivo</code> de las defensas nunca queda apuntando a memoria liberada. Al terminar la oleada, <code>Juego</code> llama a <code>olvidarObjetivo()</code> en cada defensa antes de que el destructor de <code>Oleada</code> libere a los enemigos. La recompensa se cobra una sola vez gracias a la bandera <code>recompensaCobrada</code>.</p>
+
+<h3>Estadísticas y Archivo de Historial</h3>
+<p>La clase <code>Estadisticas</code> lee <code>historial.txt</code> al iniciar el programa y agrega una línea al final de cada partida. El archivo es una tabla legible: cada línea tiene las columnas jugador, fecha, resultado, oleadas, eliminados, daño, oro y defensas, alineadas con ancho fijo (<code>setw</code>) y separadas por <code>|</code>. Se escribe con <code>operator&lt;&lt;</code> y se lee con <code>operator&gt;&gt;</code> de <code>Partida</code>, que separa por <code>|</code> y quita los espacios. Las líneas que empiezan con <code>#</code> son comentarios y las líneas corruptas se ignoran sin detener el programa. La opción «Ver estadísticas» muestra la tabla de partidas, un resumen (victorias, porcentaje, enemigos eliminados, daño promedio) y un ranking de los tres mejores puntajes, ordenado con <code>operator&lt;</code>.</p>
+
+<h3>Robustez de la Entrada</h3>
+<p>Toda lectura numérica pasa por <code>Consola::leerEntero</code>, que lee la línea completa, la convierte con <code>stoi</code> y rechaza el texto no numérico y los valores fuera de rango, así que una letra no deja <code>cin</code> en estado de error. La clase <code>Consola</code> agrupa además las utilidades de pantalla (colores ANSI, limpieza y pausas) en métodos estáticos, lo que respeta la regla de no tener funciones sueltas.</p>
+
+<h2>Pruebas y Balance de Dificultad</h2>
+<p>Para verificar que el algoritmo produce un juego equilibrado, se programó un simulador que juega partidas completas con distintas estrategias automáticas y se ejecutaron 300 partidas por estrategia (Tabla 5). Con la primera versión de los parámetros, una estrategia sencilla ganaba el 100 % de las veces sin recibir daño. Por eso se ajustaron las recompensas, el escalado de vida y el costo de las mejoras hasta que la estrategia del jugador influyera de verdad en el resultado.</p>
+
+<p class="tabnum">Tabla 5</p>
+<p class="tabtit">Resultados de 300 Partidas Simuladas por Estrategia</p>
+<table>
+<tr><th>Estrategia</th><th style="width:18%">Victorias</th><th style="width:30%">Resultado típico</th></tr>
+<tr><td>No construir defensas</td><td>0 %</td><td>Pierde en la oleada 4</td></tr>
+<tr><td>Colocar al azar junto al camino, solo arqueros</td><td>0 %</td><td>Pierde entre las oleadas 6 y 8</td></tr>
+<tr><td>Colocar al azar, mezcla de defensas y mejoras</td><td>60 %</td><td>Gana o pierde en las oleadas 8 a 10</td></tr>
+<tr><td>Ubicación óptima, solo arqueros</td><td>18 %</td><td>Suele perder entre las oleadas 8 y 10</td></tr>
+<tr class="ultima"><td>Ubicación óptima, mezcla de defensas y mejoras</td><td>98 %</td><td>Gana con poco daño</td></tr>
+</table>
+<p class="nota"><i>Nota.</i> La ubicación óptima elige la casilla libre que cubre más casillas del camino. Elaboración propia.</p>
+
+<h1>Conclusiones</h1>
+<p>Se desarrolló un juego de consola completo y funcional que cumple todos los requisitos del enunciado: menú principal con tres opciones, mapa ASCII con camino, torre, entrada y defensas, colocación y mejora de defensas antes de cada oleada, diez oleadas de enemigos con niveles que afectan su velocidad, resistencia y daño, y un historial de partidas persistente en archivo.</p>
+<p>El polimorfismo por herencia resultó ser la herramienta central del diseño. Gracias a que <code>Juego</code> y <code>Oleada</code> solo trabajan con punteros a <code>Defensa</code> y a <code>Enemigo</code>, agregar un nuevo tipo de defensa o de enemigo solo requiere crear una clase derivada y redefinir sus métodos virtuales, sin modificar el bucle principal. Esto ilustra el principio abierto/cerrado: el sistema está abierto a la extensión y cerrado a la modificación.</p>
+<p>Distinguir entre composición, agregación y asociación no es solo una cuestión de notación en el diagrama: determina quién es responsable de liberar la memoria. Haber definido que <code>Juego</code> es dueño de las defensas y que <code>Mapa</code> solo las referencia evitó errores de doble liberación, y la decisión de no borrar enemigos durante la oleada eliminó el riesgo de punteros colgantes en la asociación <code>Defensa</code> → <code>Enemigo</code>. Estas decisiones se verificaron con AddressSanitizer sin detectar fugas ni accesos inválidos.</p>
+<p>La sobrecarga de operadores hizo el código más expresivo y cercano al lenguaje del problema (<code>torre -= danio</code>, <code>*defensa += 1</code>), siempre que el operador conserve un significado intuitivo. Además, la sobrecarga simétrica de <code>&lt;&lt;</code> y <code>&gt;&gt;</code> en <code>Partida</code> simplificó la lectura y la escritura del archivo de historial.</p>
+<p>Las pruebas por simulación mostraron que la corrección del código no basta: un juego también debe estar equilibrado. Medir el resultado de cientos de partidas permitió ajustar los parámetros con datos en lugar de intuición. Como trabajo futuro se propone agregar más tipos de enemigos (por ejemplo, voladores que ignoren el camino), un jefe final, la posibilidad de vender defensas y guardar una partida en curso en un archivo binario.</p>
+
+<h2>Declaración de Uso de Inteligencia Artificial</h2>
+<p>Durante el desarrollo se utilizó el asistente de inteligencia artificial Claude (Anthropic, 2026) como apoyo para revisar el código existente, proponer mejoras de diseño (separación en archivos <code>.h</code>/<code>.cpp</code>, regla de tres, validación de entrada), generar el diagrama de clases y estructurar este informe. El equipo revisó, probó y comprendió todo el código entregado y es responsable de su contenido.</p>
+
+<br clear="all" style="page-break-before:always">
+<h1>Referencias</h1>
+<p class="ref">Anthropic. (2026). <i>Claude</i> (versión Opus 5.5) [Modelo de lenguaje de gran tamaño]. https://claude.ai</p>
+<p class="ref">Avery, P., Togelius, J., Alistar, E., &amp; van Leeuwen, R. P. (2011). Computational intelligence and tower defence games. En <i>2011 IEEE Congress of Evolutionary Computation (CEC)</i> (pp. 1084–1091). IEEE. https://doi.org/10.1109/CEC.2011.5949738</p>
+<p class="ref">Booch, G., Rumbaugh, J., &amp; Jacobson, I. (2005). <i>The unified modeling language user guide</i> (2.ª ed.). Addison-Wesley.</p>
+<p class="ref">cppreference.com. (s.f.-a). <i>Operator overloading</i>. Recuperado el 24 de noviembre de 2026, de https://en.cppreference.com/w/cpp/language/operators</p>
+<p class="ref">cppreference.com. (s.f.-b). <i>The rule of three/five/zero</i>. Recuperado el 24 de noviembre de 2026, de https://en.cppreference.com/w/cpp/language/rule_of_three</p>
+<p class="ref">Deitel, P., &amp; Deitel, H. (2017). <i>C++ how to program</i> (10.ª ed.). Pearson.</p>
+<p class="ref">Joyanes Aguilar, L. (2006). <i>Programación en C++: Algoritmos, estructuras de datos y objetos</i> (2.ª ed.). McGraw-Hill.</p>
+<p class="ref">Nystrom, R. (2014). <i>Game programming patterns</i>. Genever Benning. https://gameprogrammingpatterns.com</p>
+<p class="ref">Object Management Group. (2017). <i>OMG Unified Modeling Language (OMG UML), version 2.5.1</i>. https://www.omg.org/spec/UML/2.5.1</p>
+<p class="ref">Stroustrup, B. (2013). <i>The C++ programming language</i> (4.ª ed.). Addison-Wesley.</p>
+
+</body>
+</html>

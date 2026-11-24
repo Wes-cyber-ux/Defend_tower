@@ -1,43 +1,18 @@
 #pragma once
-#include <iostream>
-#include <cstdlib>
 #include "Defensa.h"
-#include "../mapa/Mapa.h"
-using namespace std;
 
+// Mago: lanza un rayo de hielo a los 2 enemigos mas adelantados en rango
+// y los congela 1 turno (no avanzan).
 class Mago : public Defensa {
+private:
+    static constexpr int MAX_OBJETIVOS = 2;
+
 public:
-    Mago(int f, int c) : Defensa("Mago", f, c, 20, 3, 1, 90) {}
+    static constexpr int COSTO = 90;
 
+    Mago(int fila, int columna);
 
-    void atacar(vector<Enemigo*>& enemigos, const Mapa& mapa) override
-    {
-        int golpes = 0;
-
-        for (Enemigo* e : enemigos) {
-            if (!e->estaVivo()) continue;
-
-            
-            int pos = e->getPosicion();
-            int fe = mapa.getFilaCamino(pos);
-            int ce = mapa.getColCamino(pos);
-            if (fe == -1 || ce == -1) continue;  
-
-            
-            int distancia = abs(fe - fila) + abs(ce - columna);
-
-           
-            if (distancia <= rango) {
-                *e - danio;
-                golpes++;
-            }
-
-            if (golpes == 2) break;
-        }
-    }
-
-    char simbolo() const override
-    {
-        return 'M';
-    }
+    int atacar(std::vector<Enemigo*>& enemigos, const Mapa& mapa) override;
+    char simbolo() const override;
+    std::string descripcion() const override;
 };

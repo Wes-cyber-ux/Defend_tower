@@ -1,19 +1,18 @@
 #pragma once
 #include "Enemigo.h"
-#include <iostream>
-using namespace std;
 
-class Orco : public Enemigo 
-{   
-    public:
-    Orco() : Enemigo("Orco", 60, 1, 10, 40) {}
+// Orco: lento y con armadura. Cada golpe que recibe se reduce en
+// "armadura" puntos, por eso conviene atacarlo con golpes fuertes (Canon).
+class Orco : public Enemigo {
+private:
+    int armadura;
 
-    char simbolo() const override 
-    {
-        return 'O';
-    }
+protected:
+    int danioEfectivo(int danioBruto) const override;
 
+public:
+    explicit Orco(int nivel);
 
-
-
+    char simbolo() const override;
+    std::string habilidad() const override;
 };
