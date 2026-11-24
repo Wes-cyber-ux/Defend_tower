@@ -1,0 +1,13 @@
+{
+    // Code Runner (boton "Run"): compila TODOS los .cpp del proyecto, no solo el archivo abierto,
+    // y lo ejecuta en la terminal para poder escribir en el menu.
+    "code-runner.runInTerminal": true,
+    "code-runner.saveAllFilesBeforeRun": true,
+    "code-runner.executorMap": {
+        "cpp": "cd $workspaceRoot; New-Item -ItemType Directory -Force build | Out-Null; g++ -std=c++17 -Wall -Wextra -static (Get-ChildItem -Recurse src -Filter *.cpp).FullName -o build/DefensaDelReino.exe; if ($?) { .\\build\\DefensaDelReino.exe }"
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    // El proyecto se compila con las tareas o con Code Runner; CMake es opcional.
+    "cmake.configureOnOpen": false,
+    "files.encoding": "utf8"
+}

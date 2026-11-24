@@ -66,3 +66,7 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Copias para Gradescope y temporales de Office
+entrega/
+~$*

@@ -1,0 +1,30 @@
+{
+    // Ctrl+Shift+B  -> compila todo el proyecto
+    // Terminal > Ejecutar tarea... > "Ejecutar Defensa del Reino" -> compila y juega
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compilar Defensa del Reino",
+            "type": "shell",
+            "command": "New-Item -ItemType Directory -Force build | Out-Null; g++ -std=c++17 -Wall -Wextra -g -static (Get-ChildItem -Recurse src -Filter *.cpp).FullName -o build/DefensaDelReino.exe",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] }
+            },
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Ejecutar Defensa del Reino",
+            "type": "shell",
+            "command": ".\\build\\DefensaDelReino.exe",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] }
+            },
+            "dependsOn": "Compilar Defensa del Reino",
+            "presentation": { "focus": true, "panel": "dedicated", "clear": true },
+            "problemMatcher": []
+        }
+    ]
+}

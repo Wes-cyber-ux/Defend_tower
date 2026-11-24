@@ -1,43 +1,21 @@
 #pragma once
 #include <iostream>
-using namespace std;
 
+// La torre central del reino. Si su vida llega a 0, el jugador pierde.
 class Torre {
 private:
     int vida;
-    int vidamax;
+    int vidaMax;
 
 public:
-    Torre(int v) : vida(v), vidamax(v) {}
+    explicit Torre(int vidaMax);
 
-    void recibirDanio(int danio) {
-        vida -= danio;
-        if (vida < 0) {
-            vida = 0;
-        }
-    }
+    Torre& operator-=(int danio);       // recibe danio:  torre -= 25;
+    friend std::ostream& operator<<(std::ostream& os, const Torre& t);   // barra de vida
 
-
-    Torre& operator-=(int danio) {
-        recibirDanio(danio);
-        return *this;
-    }
-
-
-
-
-    int getVida() const {
-        return vida;
-    }
-
-    
-
-    bool estaDestruida() const {
-        return vida <= 0;
-    }
-
-    void mostrarEstado() const {
-        cout << "Vida de la torre: " << vida << "/" << vidamax <<endl;
-    }
-
+    void reiniciar();
+    bool estaDestruida() const;
+    int getVida() const          { return vida; }
+    int getVidaMax() const       { return vidaMax; }
+    int getDanioRecibido() const { return vidaMax - vida; }
 };

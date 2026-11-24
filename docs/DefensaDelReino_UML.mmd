@@ -1,16 +1,28 @@
 classDiagram
     direction TB
+
     class Juego {
         -Mapa mapa
         -Torre torre
-        -Estadisticas stats
+        -Jugador jugador
+        -Estadisticas estadisticas
         -vector~Defensa*~ defensas
-        -int oro
-        +menu()
-        -jugar()
-        -prepararDefensas()
-        -ejecutarOleada(Oleada&)
+        -int oleadasSuperadas
+        -int enemigosEliminados
+        -int defensasConstruidas
+        -bool modoAnimado
+        +Juego()
+        +~Juego()
+        +menu() void
+        -jugar() void
+        -faseDePreparacion(const Oleada&) bool
+        -colocarDefensa() void
+        -mejorarDefensa() void
+        -ejecutarOleada(Oleada&) void
+        -crearDefensa(int, int, int) Defensa*
+        -liberarDefensas() void
     }
+
     class Mapa {
         -char** celdas
         -int* caminoFila
@@ -18,55 +30,88 @@ classDiagram
         -int filas
         -int columnas
         -int largoCamino
-        -aleatorio(min, max) int
-        -agregarCelda(f, c)
-        -avanzarTramo(dir, pasos)
-        -generarCamino()
-        +esLibre(f, c) bool
-        +colocarDefensa(f, c, simbolo) bool
-        +getFilaCamino(pos) int
-        +getColCamino(pos) int
-        +llegoAlFinal(pos) bool
-        +dibujar(vector~Enemigo*~&)
+        -vector~Defensa*~ defensas
+        -generarCamino() void
+        +reiniciar() void
+        +esLibre(int, int) bool
+        +colocarDefensa(Defensa*) bool
+        +getFilaCamino(int) int
+        +getColCamino(int) int
+        +llegoAlFinal(int) bool
+        +dibujar(const vector~Enemigo*~&) void
     }
+
     class Torre {
         -int vida
-        -int vidamax
-        +recibirDanio(int)
+        -int vidaMax
         +operator-=(int) Torre&
+        +operator<<(ostream&, const Torre&) ostream&
         +estaDestruida() bool
-        +mostrarEstado()
+        +reiniciar() void
     }
-    class Estadisticas {
-        +guardar(...)
-        +mostrar()
+
+    class Jugador {
+        -string nombre
+        -int oro
+        +puedePagar(int) bool
+        +operator+=(int) Jugador&
+        +operator-=(int) Jugador&
+        +operator<<(ostream&, const Jugador&) ostream&
     }
+
     class Oleada {
         -int numero
         -vector~Enemigo*~ enemigos
-        +getEnemigos() vector~Enemigo*~&
-        +avanzar()
-        +procesarLlegadas(Torre&, Mapa&) int
-        +eliminarMuertos() int
+        -generarEnemigos() void
+        +liberarSiguiente() void
+        +avanzar() void
+        +procesarLlegadas(const Mapa&, Torre&) int
+        +cobrarRecompensas(int&) int
         +terminada() bool
+        +operator[](int) Enemigo*
+        +operator<<(ostream&, const Oleada&) ostream&
     }
+
     class Enemigo {
         <<abstract>>
         #string nombre
+        #int nivel
         #int vida
+        #int vidaMax
         #int velocidad
         #int danio
         #int recompensa
         #int posicion
-        +avanzar()
-        +estaVivo() bool
-        +operator-(int) Enemigo&
-        +operator#lt;#lt;(ostream&, Enemigo&) ostream&
+        #int turnosCongelado
+        #EstadoEnemigo estado
+        #danioEfectivo(int) int
+        #pasosPorTurno() int
+        +avanzar() void
         +simbolo()* char
+        +habilidad()* string
+        +operator-(int) Enemigo&
+        +operator>(const Enemigo&) bool
+        +operator<<(ostream&, const Enemigo&) ostream&
+        +congelar(int) void
+        +cobrarRecompensa() int
     }
-    class Goblin
-    class Orco
-    class Troll
+    class Goblin {
+        #pasosPorTurno() int
+        +simbolo() char
+        +habilidad() string
+    }
+    class Orco {
+        -int armadura
+        #danioEfectivo(int) int
+        +simbolo() char
+        +habilidad() string
+    }
+    class Troll {
+        +avanzar() void
+        +simbolo() char
+        +habilidad() string
+    }
+
     class Defensa {
         <<abstract>>
         #string nombre
@@ -76,33 +121,80 @@ classDiagram
         #int rango
         #int nivel
         #int costo
-        +atacar(vector~Enemigo*~&, Mapa&)*
+        #Enemigo* objetivo
+        #enemigosEnRango(vector~Enemigo*~&, const Mapa&) vector~Enemigo*~
+        +atacar(vector~Enemigo*~&, const Mapa&)* int
         +simbolo()* char
+        +descripcion()* string
         +operator+=(int) Defensa&
-        +operator#lt;#lt;(ostream&, Defensa&) ostream&
+        +operator<<(ostream&, const Defensa&) ostream&
+        +costoMejora() int
+        +olvidarObjetivo() void
     }
     class Arquero {
-        +atacar() golpea al 1ro en rango
-    }
-    class Canon {
-        +atacar() golpea a todos en rango
+        +atacar(...) int
     }
     class Mago {
-        +atacar() golpea hasta 2 en rango
+        +atacar(...) int
+    }
+    class Canon {
+        -int turnosRecarga
+        +atacar(...) int
     }
 
-    Juego *-- Mapa : composicion
-    Juego *-- Torre : composicion
-    Juego *-- Estadisticas : composicion
-    Juego o-- Defensa : agregacion
-    Juego ..> Oleada : usa
-    Oleada *-- Enemigo : composicion
-    Defensa --> Enemigo : asociacion (ataca)
-    Defensa ..> Mapa : usa
-    Mapa ..> Enemigo : dibuja
+    class Estadisticas {
+        -string rutaArchivo
+        -vector~Partida~ partidas
+        +cargar() void
+        +registrar(const Partida&) bool
+        +mostrar() void
+    }
+    class Partida {
+        -string jugador
+        -string fecha
+        -bool victoria
+        -int oleadasSuperadas
+        -int enemigosEliminados
+        -int danioRecibido
+        +puntaje() int
+        +operator<(const Partida&) bool
+        +operator<<(ostream&, const Partida&) ostream&
+        +operator>>(istream&, Partida&) istream&
+    }
+    class Consola {
+        <<utility>>
+        +leerEntero(string, int, int)$ int
+        +limpiar()$ void
+        +color(string, int)$ string
+    }
+
+    %% Herencia
     Enemigo <|-- Goblin
     Enemigo <|-- Orco
     Enemigo <|-- Troll
     Defensa <|-- Arquero
-    Defensa <|-- Canon
     Defensa <|-- Mago
+    Defensa <|-- Canon
+
+    %% Composicion
+    Juego "1" *-- "1" Mapa
+    Juego "1" *-- "1" Torre
+    Juego "1" *-- "1" Jugador
+    Juego "1" *-- "1" Estadisticas
+    Juego "1" *-- "0..*" Defensa : crea y destruye
+    Oleada "1" *-- "1..*" Enemigo : crea y destruye
+    Estadisticas "1" *-- "0..*" Partida
+
+    %% Agregacion
+    Mapa "1" o-- "0..*" Defensa : referencia
+
+    %% Asociacion
+    Defensa "0..*" --> "0..1" Enemigo : objetivo
+
+    %% Dependencias (uso temporal)
+    Juego ..> Oleada : crea una por oleada
+    Oleada ..> Torre : la daña
+    Oleada ..> Mapa : consulta
+    Defensa ..> Mapa : consulta
+    Mapa ..> Enemigo : dibuja
+    Juego ..> Consola : usa

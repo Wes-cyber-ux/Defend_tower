@@ -1,0 +1,1094 @@
+<title>Defensa del Reino</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Concepto: el escenario 16:9 es el propio reino de noche. Cada diapositiva tiene una escena viva en bucle. */
+:root {
+  --night: #11132a;      /* fondo */
+  --stone: #1c2045;      /* paneles */
+  --line: #353b72;       /* bordes */
+  --parch: #efe8d8;      /* texto */
+  --muted: #9ea4cf;      /* texto secundario */
+  --ember: #ffa043;      /* acento: antorcha / oro / Arquero */
+  --ice: #74d7ff;        /* Mago */
+  --blast: #ff7a3d;      /* Canon */
+  --blood: #ff5a78;      /* enemigos */
+  --moss: #84e39a;       /* torre / correcto */
+  --path: #c9a55a;       /* camino */
+  --f-display: "Pixelify Sans", "Courier New", monospace;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--night); color: var(--parch); font-family: var(--f-body);
+  overflow: hidden;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  box-sizing: border-box;
+}
+#viewport { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
+#stage {
+  width: 1600px; height: 900px; position: relative; flex: none;
+  transform-origin: center center;
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(116,215,255,.07), transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, rgba(255,160,67,.08), transparent 60%),
+    var(--night);
+  border: 1px solid var(--line); border-radius: 6px; overflow: hidden;
+}
+.slide { position: absolute; inset: 0; padding: 64px 84px 92px; display: flex; flex-direction: column; gap: 28px;
+  opacity: 0; visibility: hidden; transform: translateX(40px); transition: opacity .45s ease, transform .45s ease, visibility 0s .45s; }
+.slide.active { opacity: 1; visibility: visible; transform: none; transition: opacity .45s ease, transform .45s ease; }
+.slide.prev { transform: translateX(-40px); }
+.eyebrow { font-family: var(--f-mono); font-size: 18px; letter-spacing: .14em; text-transform: uppercase; color: var(--ember); }
+h1, h2 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: .01em; }
+h2 { font-size: 64px; line-height: 1.02; }
+.lead { font-size: 26px; line-height: 1.45; color: var(--muted); max-width: 1180px; margin: 0; }
+code, .mono { font-family: var(--f-mono); }
+.row { display: flex; gap: 40px; min-height: 0; }
+.col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.panel { background: var(--stone); border: 1px solid var(--line); border-radius: 10px; }
+.kbd { font-family: var(--f-mono); font-size: 14px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; color: var(--muted); }
+.c-ember { color: var(--ember); } .c-ice { color: var(--ice); } .c-blast { color: var(--blast); }
+.c-blood { color: var(--blood); } .c-moss { color: var(--moss); } .c-muted { color: var(--muted); } .c-path { color: var(--path); }
+pre.code { margin: 0; font-family: var(--f-mono); font-size: 22px; line-height: 1.55; padding: 24px 28px; background: #0c0e22; border: 1px solid var(--line); border-radius: 10px; white-space: pre; overflow: hidden; }
+.code .k { color: #c792ea; } .code .t { color: var(--ice); } .code .f { color: var(--ember); } .code .cm { color: #6d73a8; } .code .n { color: var(--moss); }
+.code .hl { background: rgba(255,160,67,.16); outline: 1px solid rgba(255,160,67,.45); border-radius: 3px; }
+
+/* --------- barra inferior --------- */
+#bar { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; display: flex; align-items: center; gap: 18px; padding: 0 28px; z-index: 5;
+  background: linear-gradient(transparent, rgba(8,9,26,.85)); }
+#progress { flex: 1; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+#progress > i { display: block; height: 100%; width: 0; background: var(--ember); transition: width .45s ease; }
+#count { font-family: var(--f-mono); font-size: 16px; color: var(--muted); min-width: 70px; text-align: right; font-variant-numeric: tabular-nums; }
+#bar button { background: var(--stone); color: var(--parch); border: 1px solid var(--line); border-radius: 6px; font: 600 15px var(--f-body); padding: 7px 14px; cursor: pointer; }
+#bar button:hover { border-color: var(--ember); }
+#bar button:focus-visible, .chip:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+#notes { position: absolute; left: 28px; right: 28px; bottom: 74px; z-index: 6; background: rgba(12,14,34,.96); border: 1px solid var(--ember);
+  border-radius: 10px; padding: 18px 22px; font-size: 20px; line-height: 1.5; color: var(--parch); }
+#notes b { color: var(--ember); font-family: var(--f-mono); font-size: 15px; letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+/* --------- 1. portada --------- */
+#s1 { padding: 0; }
+#s1 canvas { position: absolute; left: 0; top: 0; width: 1600px; height: 640px; }
+#s1 .cover { position: absolute; left: 84px; right: 84px; bottom: 96px; display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; }
+#s1 h1 { font-size: 132px; line-height: .9; text-shadow: 0 0 40px rgba(255,160,67,.25); }
+#s1 h1 span { color: var(--ember); }
+#s1 .sub { font-size: 28px; color: var(--muted); margin-top: 14px; }
+#s1 .team { text-align: right; font-size: 20px; line-height: 1.55; color: var(--muted); flex: none; }
+#s1 .team strong { color: var(--parch); font-weight: 600; }
+#s1 .fade { position: absolute; left: 0; right: 0; top: 420px; height: 240px; background: linear-gradient(transparent, var(--night)); pointer-events: none; }
+
+/* --------- 2. mision --------- */
+.checks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 36px; }
+.check { display: flex; gap: 16px; align-items: flex-start; font-size: 23px; line-height: 1.3; padding: 11px 16px; border-radius: 10px; border: 1px solid transparent; }
+.check .box { width: 34px; height: 34px; flex: none; border: 2px solid var(--moss); border-radius: 6px; display: grid; place-items: center; color: var(--moss); font: 700 22px var(--f-mono); }
+.check.on { border-color: var(--line); background: var(--stone); }
+.check.on .box { background: var(--moss); color: var(--night); }
+.check small { display: block; font-size: 17px; color: var(--muted); margin-top: 2px; }
+.stats { display: flex; gap: 22px; }
+.stat { flex: 1; padding: 14px 22px; }
+.stat b { display: block; font: 700 50px var(--f-display); color: var(--ember); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 19px; color: var(--muted); }
+
+/* --------- 3. terminal --------- */
+.term { width: 760px; height: 560px; flex: none; background: #07081a; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+.term .tb { height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-bottom: 1px solid var(--line); font: 14px var(--f-mono); color: var(--muted); }
+.term .tb i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); display: inline-block; }
+.term pre { margin: 0; padding: 14px 18px; font: 16px/1.42 var(--f-mono); color: #d6d9f2; white-space: pre; flex: 1; overflow: hidden; }
+.term .cur { display: inline-block; width: 9px; height: 17px; background: var(--ember); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.steps { display: flex; flex-direction: column; gap: 14px; }
+.step { padding: 18px 22px; border-radius: 10px; border: 1px solid var(--line); background: transparent; transition: background .3s, border-color .3s; }
+.step b { font: 700 28px var(--f-display); display: block; }
+.step span { font-size: 20px; color: var(--muted); }
+.step.on { background: var(--stone); border-color: var(--ember); }
+.step.on b { color: var(--ember); }
+
+/* --------- 4. arquitectura --------- */
+#archSvg { width: 100%; flex: 1; min-height: 0; }
+.legend svg { flex: none; width: 60px; height: 16px; }
+#arch .node rect { fill: var(--stone); stroke: var(--line); stroke-width: 2; transition: stroke .2s, fill .2s; }
+#arch .node text { fill: var(--parch); font: 600 19px var(--f-body); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+#arch .node.abs text { font-style: italic; fill: var(--ember); }
+#arch .node { cursor: pointer; }
+#arch .node.hot rect { stroke: var(--ember); fill: #2a2f60; }
+#arch .edge { fill: none; stroke: var(--muted); stroke-width: 2; transition: opacity .2s, stroke .2s; }
+#arch .edge.dep { stroke-dasharray: 7 6; animation: flow 1.2s linear infinite; }
+#arch .edge.comp { stroke: var(--parch); }
+#arch .edge.agg { stroke: var(--ice); }
+#arch .edge.assoc { stroke: var(--blood); stroke-dasharray: 2 0; }
+#arch .edge.inh { stroke: var(--moss); }
+#arch .edge.flow { stroke-dasharray: 12 8; animation: flow 1.6s linear infinite; }
+#arch.focus .edge:not(.hot) { opacity: .12; }
+#arch.focus .node:not(.hot):not(.near) { opacity: .35; }
+@keyframes flow { to { stroke-dashoffset: -40; } }
+.legend { display: flex; gap: 30px; font-size: 19px; color: var(--muted); flex-wrap: wrap; }
+.legend span { display: flex; align-items: center; gap: 10px; }
+
+/* --------- 5. herencia --------- */
+.trees { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
+.tree { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.tree .base { padding: 16px 26px; text-align: center; border-color: var(--ember); }
+.tree .base b { font: italic 700 36px var(--f-display); color: var(--ember); display: block; }
+.tree .base small { font: 17px var(--f-mono); color: var(--muted); }
+.tree svg { width: 640px; height: 90px; display: block; }
+.tree svg path { stroke: var(--moss); stroke-width: 2.5; fill: none; }
+.kids { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; }
+.kid { padding: 16px; text-align: center; transition: transform .35s, border-color .35s, box-shadow .35s; }
+.kid b { font: 700 28px var(--f-display); display: block; }
+.kid code { display: block; font-size: 15px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+.kid.on { transform: translateY(-8px); border-color: var(--moss); box-shadow: 0 10px 30px rgba(132,227,154,.15); }
+.kid.on code { color: var(--moss); }
+
+/* --------- 6. polimorfismo --------- */
+.arr { display: flex; gap: 10px; position: relative; padding-top: 46px; }
+.cell { width: 82px; height: 82px; display: grid; place-items: center; font: 700 40px var(--f-display); border: 2px solid var(--line); border-radius: 8px; background: var(--stone); transition: border-color .25s, transform .25s; }
+.cell.on { border-color: var(--ember); transform: scale(1.08); }
+.ptr { position: absolute; top: 0; left: 0; font: 600 16px var(--f-mono); color: var(--ember); transition: transform .35s ease; text-align: center; width: 82px; }
+.lane { position: relative; height: 230px; overflow: hidden; }
+.lane .road { position: absolute; left: 0; right: 0; top: 150px; height: 6px; background: repeating-linear-gradient(90deg, var(--path) 0 14px, transparent 14px 22px); opacity: .6; }
+.tower-def { position: absolute; left: 30px; top: 30px; width: 74px; height: 74px; display: grid; place-items: center; font: 700 44px var(--f-display); border: 2px solid var(--ember); border-radius: 8px; background: var(--night); }
+.foe { position: absolute; top: 120px; width: 56px; height: 56px; display: grid; place-items: center; font: 700 34px var(--f-display); color: var(--blood); transition: color .2s, filter .2s; }
+.foe.frozen { color: var(--ice); filter: drop-shadow(0 0 10px var(--ice)); }
+.foe.hit { animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.shot { position: absolute; height: 4px; transform-origin: left center; border-radius: 2px; opacity: 0; }
+.boom { position: absolute; width: 20px; height: 20px; border-radius: 50%; border: 4px solid var(--blast); opacity: 0; transform: translate(-50%,-50%); }
+.boom.go { animation: boom .6s ease-out; }
+@keyframes boom { 0% { opacity: 1; width: 20px; height: 20px; } 100% { opacity: 0; width: 560px; height: 560px; } }
+.say { font-size: 26px; min-height: 40px; }
+
+/* --------- 7. enemigos --------- */
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; flex: 1; min-height: 0; }
+.ecard { padding: 26px; display: flex; flex-direction: column; gap: 14px; }
+.ecard h3 { margin: 0; font: 700 40px var(--f-display); display: flex; align-items: baseline; gap: 14px; }
+.ecard h3 .sym { color: var(--blood); }
+.ecard p { margin: 0; font-size: 20px; color: var(--muted); line-height: 1.45; }
+.mini { position: relative; height: 140px; background: #0c0e22; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.hp { position: absolute; left: 14px; right: 14px; top: 14px; height: 12px; background: #2a2340; border-radius: 6px; overflow: hidden; }
+.hp i { display: block; height: 100%; background: var(--blood); width: 100%; transition: width .25s; }
+.hp.ok i { background: var(--moss); }
+.mini .who { position: absolute; top: 60px; font: 700 40px var(--f-display); color: var(--blood); }
+.mini .tag { position: absolute; right: 14px; bottom: 10px; font: 600 16px var(--f-mono); color: var(--ember); }
+.float { position: absolute; font: 700 24px var(--f-mono); pointer-events: none; animation: rise 1s ease-out forwards; }
+@keyframes rise { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-40px); } }
+.ecard pre.code { font-size: 16px; padding: 14px 16px; }
+
+/* --------- 8. relaciones --------- */
+.chips { display: flex; gap: 12px; flex-wrap: wrap; }
+.chip { font: 600 18px var(--f-body); padding: 9px 16px; border-radius: 30px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.chip.on { background: var(--ember); color: var(--night); border-color: var(--ember); }
+#relSvg { width: 100%; height: 400px; flex: none; }
+#rel .box { fill: var(--stone); stroke: var(--line); stroke-width: 2; }
+#rel text { fill: var(--parch); font: 600 22px var(--f-body); }
+#rel .lbl { font: 16px var(--f-mono); fill: var(--muted); }
+#rel .unit { transition: opacity .6s, transform .6s; }
+#rel .gone { opacity: .08; }
+#rel .ref { stroke: var(--ice); stroke-width: 2.5; stroke-dasharray: 8 6; fill: none; transition: opacity .5s; animation: flow 1.4s linear infinite; }
+#rel .own { stroke: var(--parch); stroke-width: 2.5; fill: none; transition: opacity .5s; }
+#rel .tgt { stroke: var(--blood); stroke-width: 3; fill: none; transition: d .5s; }
+#rel .flash { font: 700 22px var(--f-mono); fill: var(--ember); }
+.caption { font-size: 25px; line-height: 1.45; min-height: 76px; }
+.caption b { color: var(--ember); }
+
+/* --------- 9. operadores --------- */
+.ops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.op { padding: 22px; display: flex; flex-direction: column; gap: 14px; transition: border-color .3s, transform .3s; min-height: 0; }
+.op.on { border-color: var(--ember); transform: translateY(-4px); }
+.op .line { font: 600 24px var(--f-mono); color: var(--ember); }
+.op .what { font-size: 18px; color: var(--muted); }
+.op .vis { height: 56px; display: flex; align-items: center; gap: 12px; font: 18px var(--f-mono); }
+.bar { flex: 1; height: 16px; background: #2a2340; border-radius: 8px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 100%; border-radius: 8px; transition: width .7s ease; }
+.pips { display: flex; gap: 8px; }
+.pips i { width: 26px; height: 26px; border-radius: 5px; border: 2px solid var(--ember); transition: background .4s; }
+.pips i.f { background: var(--ember); }
+.gold { font: 700 34px var(--f-display); color: var(--ember); font-variant-numeric: tabular-nums; }
+
+/* --------- algoritmo de la partida --------- */
+#algoSvg { width: 100%; flex: 1; min-height: 0; }
+#algo .fn rect, #algo .fn polygon { fill: var(--stone); stroke: var(--line); stroke-width: 2.5; transition: fill .25s, stroke .25s; }
+#algo .fn text { fill: var(--parch); font: 600 19px var(--f-body); text-anchor: middle; dominant-baseline: central; }
+#algo .fn.dec text { font-size: 18px; }
+#algo .fn.on rect, #algo .fn.on polygon { stroke: var(--ember); fill: #2c2a55; }
+#algo .fe { fill: none; stroke: var(--muted); stroke-width: 2.2; }
+#algo .fe.back { stroke: var(--ember); stroke-dasharray: 10 7; animation: flow 1.2s linear infinite; }
+#algo .yn { font: 700 17px var(--f-mono); fill: var(--ember); }
+#algo .tok { fill: var(--ember); filter: drop-shadow(0 0 12px var(--ember)); }
+#algo .olc { font: 700 30px var(--f-display); fill: var(--parch); }
+.algoCap { font-size: 25px; min-height: 38px; }
+.algoCap b { color: var(--ember); }
+
+/* --------- 10. bucle --------- */
+#loopSvg { width: 560px; height: 560px; flex: none; }
+#loop .ring { fill: none; stroke: var(--line); stroke-width: 3; stroke-dasharray: 4 10; }
+#loop .stepc circle { fill: var(--stone); stroke: var(--line); stroke-width: 3; transition: fill .25s, stroke .25s; }
+#loop .stepc text { fill: var(--parch); font: 600 17px var(--f-body); text-anchor: middle; }
+#loop .stepc .num { font: 700 30px var(--f-display); fill: var(--muted); }
+#loop .stepc.on circle { fill: var(--ember); stroke: var(--ember); }
+#loop .stepc.on .num { fill: var(--night); }
+#loop .orb { fill: var(--ember); filter: drop-shadow(0 0 10px var(--ember)); }
+#loop .center1 { font: 700 26px var(--f-mono); fill: var(--muted); text-anchor: middle; }
+#loop .center2 { font: 700 88px var(--f-display); fill: var(--parch); text-anchor: middle; font-variant-numeric: tabular-nums; }
+
+/* --------- 11. archivo --------- */
+.file { flex: 1; min-width: 0; }
+.file .head { font: 600 17px var(--f-mono); color: var(--muted); padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.file pre { margin: 0; padding: 16px 18px; font: 17px/1.7 var(--f-mono); white-space: pre; overflow: hidden; height: 330px; color: #d6d9f2; }
+.file pre .c { color: #6d73a8; }
+table.hist { width: 100%; border-collapse: collapse; font-size: 19px; font-variant-numeric: tabular-nums; }
+table.hist th { text-align: left; color: var(--muted); font-weight: 500; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+table.hist td { padding: 10px 12px; border-bottom: 1px solid rgba(53,59,114,.5); }
+table.hist tr.new td { animation: fadein .5s; }
+@keyframes fadein { from { background: rgba(255,160,67,.25); } to { background: transparent; } }
+.win { color: var(--moss); } .lose { color: var(--blood); }
+.arrow-mid { align-self: center; font: 700 30px var(--f-mono); color: var(--ember); text-align: center; }
+
+/* --------- 12. memoria --------- */
+.mem { position: relative; height: 420px; }
+.ptrcol { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; gap: 12px; }
+.pbox { width: 120px; height: 64px; display: grid; place-items: center; font: 600 17px var(--f-mono); border: 2px solid var(--ember); border-radius: 6px; background: var(--stone); transition: opacity .3s; }
+.rowarr { position: absolute; left: 180px; height: 64px; display: flex; gap: 3px; transition: opacity .3s; }
+.rowarr i { width: 26px; height: 64px; background: #0c0e22; border: 1px solid var(--line); display: grid; place-items: center; font: 600 15px var(--f-mono); color: var(--muted); font-style: normal; }
+.rowarr i.p { color: var(--path); }
+.memlog { font: 600 22px var(--f-mono); color: var(--ember); min-height: 34px; }
+.points { display: flex; flex-direction: column; gap: 18px; }
+.point { padding: 18px 22px; font-size: 21px; line-height: 1.45; }
+.point b { color: var(--ember); }
+
+/* --------- 13. balance --------- */
+.bars { display: flex; flex-direction: column; gap: 20px; }
+.brow { display: grid; grid-template-columns: 470px 1fr 90px; gap: 20px; align-items: center; font-size: 22px; }
+.brow .track { height: 40px; background: var(--stone); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.brow .track i { display: block; height: 100%; width: 0; transition: width 1.2s cubic-bezier(.2,.8,.2,1); background: repeating-linear-gradient(90deg, var(--ember) 0 18px, #ffb86b 18px 22px); }
+.brow .val { font: 700 34px var(--f-display); text-align: right; font-variant-numeric: tabular-nums; }
+.brow small { display: block; font-size: 17px; color: var(--muted); }
+
+/* --------- 14. conclusiones --------- */
+.concl { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.cc { padding: 26px 28px; font-size: 22px; line-height: 1.45; }
+.cc b { display: block; font: 700 30px var(--f-display); color: var(--ember); margin-bottom: 8px; }
+
+/* --------- 15. cierre --------- */
+#s15 { padding: 0; }
+#s15 canvas { position: absolute; inset: 0; width: 1600px; height: 900px; opacity: .45; }
+#s15 .end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; }
+#s15 h1 { font-size: 150px; text-shadow: 0 0 50px rgba(255,160,67,.35); }
+#s15 p { font-size: 28px; color: var(--muted); margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }
+}
+</style>
+
+<div id="viewport"><div id="stage">
+
+<!-- 1 -->
+<section class="slide" id="s1" data-notes="Presentarse. Mostrar que lo que se ve detrás es el juego simulado en vivo: el camino (#), la torre (T), defensas A, M, C disparando y enemigos G, O, W avanzando. Una frase: 'Hicimos un tower defense en consola aplicando todo lo de POO del curso'.">
+  <canvas id="mapCover" width="3200" height="1280" aria-label="Mapa animado del juego"></canvas>
+  <div class="fade"></div>
+  <div class="cover">
+    <div>
+      <div class="eyebrow">Programación II · UTEC · 2026-2</div>
+      <h1>Defensa del<br><span>Reino</span></h1>
+      <div class="sub">Un tower defense en consola construido con POO en C++</div>
+    </div>
+    <div class="team">
+      <strong>Equipo</strong><br>
+      Cristopher Aron Lopez Garay<br>
+      Wesley Rivaldo Laura Choquejahua<br>
+      Ernesto Sebastian Davila Quichca<br>
+      Gonzalo Alejandro Ugaz Espinoza<br>
+      Santiago Nicolás Villacorta Nacurena
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2" data-notes="Recorrer rápido los requisitos del enunciado y decir que todos están cumplidos. Remarcar las cifras: 16 clases, 33 archivos, y que se verificó la memoria con AddressSanitizer sin fugas.">
+  <div class="eyebrow">La misión</div>
+  <h2>Eldoria está bajo ataque</h2>
+  <div class="checks" id="checks">
+    <div class="check"><div class="box">✓</div><div>Menú: Jugar, Ver estadísticas, Salir<small>main() solo llama a juego.menu()</small></div></div>
+    <div class="check"><div class="box">✓</div><div>Mapa ASCII con camino, torre y entrada<small>Matriz dinámica char** de 10 × 24</small></div></div>
+    <div class="check"><div class="box">✓</div><div>Colocar y mejorar defensas<small>Arquero, Mago y Cañón con 4 niveles</small></div></div>
+    <div class="check"><div class="box">✓</div><div>Enemigos con niveles<small>Velocidad, vida y daño crecen por oleada</small></div></div>
+    <div class="check"><div class="box">✓</div><div>10 oleadas: ganar o perder<small>Si la torre llega a 0 de vida, pierdes</small></div></div>
+    <div class="check"><div class="box">✓</div><div>Historial en archivo<small>historial.txt con lectura y escritura</small></div></div>
+    <div class="check"><div class="box">✓</div><div>Herencia, polimorfismo y 4 relaciones<small>Asociación, agregación, composición y herencia</small></div></div>
+    <div class="check"><div class="box">✓</div><div>Sobrecarga de operadores<small>-, +=, -=, &lt;&lt;, &gt;&gt;, [], &lt;, &gt;</small></div></div>
+  </div>
+  <div class="stats">
+    <div class="stat panel"><b>16</b><span>clases</span></div>
+    <div class="stat panel"><b>33</b><span>archivos .h / .cpp</span></div>
+    <div class="stat panel"><b>~1800</b><span>líneas de C++17</span></div>
+    <div class="stat panel"><b>0</b><span>fugas de memoria (ASan)</span></div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s3" data-notes="Explicar el flujo de una partida mientras la terminal se escribe sola: menú, preparación (colocar con fila y columna), la oleada turno a turno y el resultado que se guarda en el archivo. Si hay tiempo, hacer la demo real después de esta diapositiva.">
+  <div class="eyebrow">Cómo se juega</div>
+  <h2>De la preparación a la batalla</h2>
+  <div class="row" style="flex:1; align-items:flex-start">
+    <div class="term"><div class="tb"><i></i><i></i><i></i>&nbsp; DefensaDelReino.exe</div><pre id="termOut"></pre></div>
+    <div class="steps col" style="flex:1">
+      <div class="step" data-k="0"><b>1 · Menú</b><span>Jugar, ver estadísticas o salir. Toda entrada se valida.</span></div>
+      <div class="step" data-k="1"><b>2 · Preparación</b><span>Antes de cada oleada: colocar defensas (fila, columna) y mejorarlas con oro.</span></div>
+      <div class="step" data-k="2"><b>3 · Oleada</b><span>Los enemigos salen de E de uno en uno y avanzan por # hasta T.</span></div>
+      <div class="step" data-k="3"><b>4 · Resultado</b><span>Bonus de oro, siguiente oleada y, al final, registro en historial.txt.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide" id="arch" data-notes="Este es el diagrama de clases simplificado. Pasar el mouse por Juego: es el controlador y es dueño (composición) de Mapa, Torre, Jugador, Estadísticas y las Defensas. Oleada es dueña de sus Enemigos. Mapa solo referencia las defensas (agregación). Defensa apunta a un Enemigo (asociación). El diagrama completo está en el informe.">
+  <div class="eyebrow">Arquitectura</div>
+  <h2>16 clases, un reino</h2>
+  <svg viewBox="0 0 1430 600" id="archSvg" aria-label="Diagrama de relaciones entre clases"></svg>
+  <div class="legend">
+    <span><svg width="60" height="16"><line x1="2" y1="8" x2="44" y2="8" stroke="var(--moss)" stroke-width="2"/><path d="M44 2 L58 8 L44 14 Z" fill="var(--night)" stroke="var(--moss)" stroke-width="2"/></svg>Herencia</span>
+    <span><svg width="60" height="16"><path d="M2 8 L12 3 L22 8 L12 13 Z" fill="var(--parch)"/><line x1="22" y1="8" x2="58" y2="8" stroke="var(--parch)" stroke-width="2"/></svg>Composición</span>
+    <span><svg width="60" height="16"><path d="M2 8 L12 3 L22 8 L12 13 Z" fill="var(--night)" stroke="var(--ice)" stroke-width="2"/><line x1="22" y1="8" x2="58" y2="8" stroke="var(--ice)" stroke-width="2"/></svg>Agregación</span>
+    <span><svg width="60" height="16"><line x1="2" y1="8" x2="56" y2="8" stroke="var(--blood)" stroke-width="2"/><path d="M46 3 L57 8 L46 13" fill="none" stroke="var(--blood)" stroke-width="2"/></svg>Asociación</span>
+    <span><svg width="60" height="16"><line x1="2" y1="8" x2="56" y2="8" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 5"/><path d="M46 3 L57 8 L46 13" fill="none" stroke="var(--muted)" stroke-width="2"/></svg>Dependencia</span>
+    <span class="c-muted">Pasa el cursor sobre una clase para ver sus relaciones</span>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s5" data-notes="Dos jerarquías. Enemigo y Defensa son clases ABSTRACTAS: tienen métodos virtuales puros (= 0), por eso no se pueden instanciar. Cada hija redefine (override) lo que la hace distinta. El destructor de la base es virtual para que delete a traves de un puntero base llame al destructor correcto.">
+  <div class="eyebrow">Herencia</div>
+  <h2>Dos familias, un mismo contrato</h2>
+  <div class="trees">
+    <div class="tree">
+      <div class="base panel"><b>Enemigo</b><small>virtual char simbolo() const = 0;</small></div>
+      <svg viewBox="0 0 640 90"><path d="M320 0 V45 H107 V90 M320 45 H533 V90 M320 45 V90"/></svg>
+      <div class="kids" data-tree="e">
+        <div class="kid panel"><b class="c-blood">Goblin</b><code>pasosPorTurno()<br>herido corre +1</code></div>
+        <div class="kid panel"><b class="c-blood">Orco</b><code>danioEfectivo()<br>armadura resta daño</code></div>
+        <div class="kid panel"><b class="c-blood">Troll</b><code>avanzar()<br>regenera 4% por turno</code></div>
+      </div>
+    </div>
+    <div class="tree">
+      <div class="base panel"><b>Defensa</b><small>virtual int atacar(...) = 0;</small></div>
+      <svg viewBox="0 0 640 90"><path d="M320 0 V45 H107 V90 M320 45 H533 V90 M320 45 V90"/></svg>
+      <div class="kids" data-tree="d">
+        <div class="kid panel"><b class="c-ember">Arquero</b><code>atacar()<br>1 objetivo fijo</code></div>
+        <div class="kid panel"><b class="c-ice">Mago</b><code>atacar()<br>2 objetivos + hielo</code></div>
+        <div class="kid panel"><b class="c-blast">Cañón</b><code>atacar()<br>área + recarga</code></div>
+      </div>
+    </div>
+  </div>
+  <p class="lead">Las clases base son <b class="c-ember">abstractas</b> y su destructor es <code>virtual</code>: al hacer <code>delete</code> con un puntero a la base se ejecuta el destructor correcto.</p>
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s6" data-notes="Esta es la idea clave del polimorfismo. El vector guarda punteros a Defensa. El bucle hace la MISMA llamada d->atacar() en cada vuelta, pero en tiempo de ejecución se ejecuta la versión del objeto real: enlace dinámico. Para agregar una defensa nueva no hay que tocar este bucle.">
+  <div class="eyebrow">Polimorfismo</div>
+  <h2>Una línea, tres comportamientos</h2>
+  <div class="row" style="flex:1">
+    <div class="col" style="width:640px; flex:none">
+<pre class="code"><span class="t">vector</span>&lt;<span class="t">Defensa</span>*&gt; defensas;
+
+<span class="k">for</span> (<span class="t">Defensa</span>* d : defensas) {
+    <span class="hl">d-&gt;<span class="f">atacar</span>(enemigos, mapa);</span>
+}
+<span class="cm">// el compilador no sabe cual atacar()
+// se ejecuta: lo decide el objeto real
+// en tiempo de ejecucion (virtual)</span></pre>
+      <div class="say" id="polySay"></div>
+    </div>
+    <div class="col" style="flex:1">
+      <div class="arr" id="polyArr"><div class="ptr" id="polyPtr">d ▼</div></div>
+      <div class="lane panel" id="polyLane"><div class="road"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s7" data-notes="Cada enemigo redefine un método virtual distinto. Goblin: cuando tiene menos de la mitad de vida corre más rápido. Orco: su armadura reduce cada golpe; por eso el Cañón, que pega fuerte, es mejor contra el. Troll: se regenera cada turno. Además todos escalan con el nivel de la oleada.">
+  <div class="eyebrow">Cada enemigo es distinto</div>
+  <h2>Comportamiento propio por tipo</h2>
+  <div class="cards3">
+    <div class="ecard panel">
+      <h3><span class="sym">G</span> Goblin</h3>
+      <div class="mini" id="mG"><div class="hp"><i></i></div><div class="who">G</div><div class="tag">vel 2</div></div>
+      <p>Rápido y frágil. Con menos de la mitad de vida entra en pánico y corre una casilla extra.</p>
+<pre class="code">int pasosPorTurno() const override {
+  return velocidad + (vida*2 &lt; vidaMax);
+}</pre>
+    </div>
+    <div class="ecard panel">
+      <h3><span class="sym">O</span> Orco</h3>
+      <div class="mini" id="mO"><div class="hp"><i></i></div><div class="who" style="left:44%">O</div><div class="tag">armadura 6</div></div>
+      <p>Lento y blindado. Su armadura resta puntos a cada golpe que recibe.</p>
+<pre class="code">int danioEfectivo(int d) const override {
+  return max(1, d - armadura);
+}</pre>
+    </div>
+    <div class="ecard panel">
+      <h3><span class="sym">W</span> Troll</h3>
+      <div class="mini" id="mW"><div class="hp ok"><i></i></div><div class="who" style="left:44%">W</div><div class="tag">regenera 4%</div></div>
+      <p>Una montaña de vida. Se cura en cada turno antes de moverse.</p>
+<pre class="code">void avanzar() override {
+  regenerar();
+  Enemigo::avanzar();
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide" id="rel" data-notes="La diferencia entre relaciones se ve en QUIÉN DESTRUYE a quién. Composición: al destruir la Oleada se destruyen sus enemigos. Agregación: el Mapa olvida sus defensas pero estas siguen vivas, porque su dueño es Juego. Asociación: el Arquero apunta a un enemigo sin ser su dueño y puede cambiar de objetivo.">
+  <div class="eyebrow">Relaciones entre clases</div>
+  <h2>¿Quién destruye a quién?</h2>
+  <div class="chips" id="relChips">
+    <button class="chip" data-p="0">Composición · Oleada ◆ Enemigo</button>
+    <button class="chip" data-p="1">Agregación · Mapa ◇ Defensa</button>
+    <button class="chip" data-p="2">Asociación · Defensa → Enemigo</button>
+    <button class="chip" data-p="3">Composición · Juego ◆ Defensa</button>
+  </div>
+  <svg viewBox="0 0 1430 470" id="relSvg" aria-label="Animacion de relaciones">
+    <rect class="box" x="40" y="20" width="420" height="190" rx="10"/><text x="60" y="58">Juego</text><text class="lbl" x="60" y="86">vector&lt;Defensa*&gt; defensas</text>
+    <rect class="box" x="40" y="270" width="420" height="170" rx="10"/><text x="60" y="308">Mapa</text><text class="lbl" x="60" y="336">vector&lt;Defensa*&gt; (no las borra)</text>
+    <rect class="box" x="900" y="20" width="490" height="420" rx="10"/><text x="920" y="58">Oleada</text><text class="lbl" x="920" y="86">vector&lt;Enemigo*&gt; enemigos</text>
+    <g id="relDefs"></g><g id="relFoes"></g>
+    <path class="tgt" id="relTarget" d="" marker-end="url(#ah)"/>
+    <text class="flash" id="relFlash" x="920" y="420"></text>
+    <text class="flash" id="relFlash2" x="60" y="200"></text>
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10" fill="none" stroke="var(--blood)" stroke-width="2"/></marker></defs>
+  </svg>
+  <div class="caption" id="relCap"></div>
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s9" data-notes="La sobrecarga hace que el código se lea como el problema: torre -= danio, *defensa += 1 (danio va sin ñ porque es el nombre de la variable en el código). Los operadores compuestos devuelven referencia (*this) para poder encadenar. << se declara como friend porque el operando izquierdo es ostream, no nuestra clase. En Partida, << y >> se usan para escribir y leer el archivo.">
+  <div class="eyebrow">Sobrecarga de operadores</div>
+  <h2>El código habla el idioma del juego</h2>
+  <div class="ops" id="ops">
+    <div class="op panel"><div class="line">*goblin - 15;</div><div class="what">Enemigo::operator- aplica daño</div><div class="vis"><span class="c-blood">G</span><div class="bar"><i style="background:var(--blood)"></i></div><span data-v>30/30</span></div></div>
+    <div class="op panel"><div class="line">*arquero += 1;</div><div class="what">Defensa::operator+= sube de nivel</div><div class="vis"><span class="c-ember">A</span><div class="pips"><i class="f"></i><i></i><i></i><i></i></div><span data-v>Nv.1</span></div></div>
+    <div class="op panel"><div class="line">torre -= 25;</div><div class="what">Torre::operator-= recibe daño</div><div class="vis"><span class="c-moss">T</span><div class="bar"><i style="background:var(--moss)"></i></div><span data-v>200</span></div></div>
+    <div class="op panel"><div class="line">jugador += 30;</div><div class="what">Jugador::operator+= gana oro</div><div class="vis"><span class="gold" data-v>200</span><span class="c-muted">de oro</span></div></div>
+    <div class="op panel"><div class="line">cout &lt;&lt; *orco;</div><div class="what">friend operator&lt;&lt; muestra datos</div><div class="vis"><span data-v class="c-muted">_</span></div></div>
+    <div class="op panel"><div class="line">archivo &gt;&gt; partida;</div><div class="what">Partida::operator&gt;&gt; lee una línea</div><div class="vis"><span data-v class="c-muted">_</span></div></div>
+  </div>
+  <p class="lead">También: <code>oleada[i]</code> con control de límites, <code>*a &gt; *b</code> para elegir al enemigo más adelantado y <code>partidaA &lt; partidaB</code> para el ranking.</p>
+</section>
+
+<!-- algoritmo -->
+<section class="slide" id="algo" data-notes="Este es el algoritmo completo del programa. Seguir la ficha naranja: desde el menú se crea una partida, y luego se repite el ciclo preparación, oleada, ¿la torre sigue en pie?, ¿quedan oleadas? Ese ciclo (la flecha punteada) es el bucle for de Juego::jugar() y se repite 10 veces. Si la torre cae, o al completar la oleada 10, se muestra el resultado, se guarda en historial.txt y se vuelve al menú.">
+  <div class="eyebrow">Algoritmo</div>
+  <h2>Una partida, de principio a fin</h2>
+  <svg viewBox="0 0 1430 520" id="algoSvg" aria-label="Diagrama de flujo animado de una partida"></svg>
+  <div class="algoCap" id="algoCap"></div>
+</section>
+
+<!-- 10 -->
+<section class="slide" id="loop" data-notes="El corazón del juego es este bucle. Cada turno tiene 5 pasos en orden fijo. El bucle termina cuando todos los enemigos fueron eliminados o llegaron, o cuando la torre cae. Los enemigos muertos no se borran durante la oleada, solo cambian de estado, así las defensas nunca apuntan a memoria liberada.">
+  <div class="eyebrow">El bucle de juego</div>
+  <h2>Cada turno, cinco pasos</h2>
+  <div class="row" style="flex:1; align-items:center">
+    <svg viewBox="0 0 620 620" id="loopSvg" aria-label="Ciclo del turno"></svg>
+<pre class="code" id="loopCode" style="flex:1; font-size:21px"><span class="k">while</span> (!oleada.<span class="f">terminada</span>() &amp;&amp; !torre.<span class="f">estaDestruida</span>()) {
+<span data-l="0">    oleada.<span class="f">liberarSiguiente</span>();          <span class="cm">// 1</span></span>
+<span data-l="1">    <span class="k">for</span> (<span class="t">Defensa</span>* d : defensas)
+        d-&gt;<span class="f">atacar</span>(enemigos, mapa);      <span class="cm">// 2</span></span>
+<span data-l="2">    jugador += oleada.<span class="f">cobrarRecompensas</span>(b); <span class="cm">// 3</span></span>
+<span data-l="3">    oleada.<span class="f">avanzar</span>();                   <span class="cm">// 4</span></span>
+<span data-l="4">    oleada.<span class="f">procesarLlegadas</span>(mapa, torre); <span class="cm">// 5</span></span>
+}</pre>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide" id="s11" data-notes="Al terminar cada partida se agrega una fila a historial.txt en modo append; el archivo es una tabla con columnas de ancho fijo separadas por barras, así se lee directamente en cualquier editor. Al iniciar el programa se lee el archivo: cada línea pasa por operator>> de Partida. Las líneas con # son comentarios y las líneas corruptas se ignoran sin romper el programa. Con operator< se ordena el ranking. Los nombres de esta animación son de ejemplo.">
+  <div class="eyebrow">Lectura y escritura de archivos</div>
+  <h2>Cada partida queda en la historia</h2>
+  <div class="row" style="flex:1; gap:28px">
+    <div class="file panel" style="flex:1.6"><div class="head">historial.txt · ofstream(ruta, ios::app) &lt;&lt; partida</div><pre id="fileOut" style="font-size:12px"></pre></div>
+    <div class="arrow-mid">&gt;&gt;<br><span style="font-size:16px; color:var(--muted)">operator&gt;&gt;</span></div>
+    <div class="file panel" style="padding:8px 10px">
+      <table class="hist"><thead><tr><th>Jugador</th><th>Resultado</th><th>Oleadas</th><th>Puntos</th></tr></thead><tbody id="histBody"></tbody></table>
+      <div style="padding:14px 12px; font-size:19px; color:var(--muted)" id="rankLine">Ranking con <code>operator&lt;</code></div>
+    </div>
+  </div>
+  <p class="c-muted" style="margin:0; font-size:18px">Datos de ejemplo para ilustrar el formato.</p>
+</section>
+
+<!-- 12 -->
+<section class="slide" id="s12" data-notes="El mapa es una matriz dinámica: un arreglo de punteros donde cada puntero apunta a una fila. Se crea con new y se libera con delete[] en el destructor, primero las filas y luego el arreglo de punteros. Como Mapa, Oleada y Juego manejan memoria, prohibimos copiarlos (= delete) para cumplir la regla de tres y evitar un doble delete.">
+  <div class="eyebrow">Punteros y memoria</div>
+  <h2>char** celdas: una matriz que nace y muere</h2>
+  <div class="row" style="flex:1">
+    <div class="col" style="width:900px; flex:none">
+      <div class="memlog" id="memLog"></div>
+      <div class="mem" id="mem"></div>
+    </div>
+    <div class="points" style="flex:1">
+      <div class="point panel"><b>Regla de tres.</b> Mapa, Oleada y Juego tienen destructor propio, así que prohíben la copia con <code>= delete</code>.</div>
+      <div class="point panel"><b>Destructor virtual</b> en Enemigo y Defensa para borrar bien a través de un puntero a la base.</div>
+      <div class="point panel"><b>Sin punteros colgantes:</b> las defensas olvidan su objetivo antes de que la oleada libere a sus enemigos.</div>
+      <div class="point panel"><b>Verificado</b> con AddressSanitizer: 0 fugas y 0 accesos inválidos.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="slide" id="s13" data-notes="No bastaba con que compilara: el juego tenía que estar equilibrado. Programamos un simulador que juega 300 partidas por estrategia. La primera versión era demasiado fácil (100% de victorias sin daño), así que ajustamos recompensas, vida y costos. Ahora la estrategia importa: sin defensas pierdes en la oleada 4 y con buena estrategia ganas casí siempre.">
+  <div class="eyebrow">Pruebas</div>
+  <h2>Balance medido con 1500 partidas simuladas</h2>
+  <div class="bars" id="bars">
+    <div class="brow"><div>No construir nada<small>pierde en la oleada 4</small></div><div class="track"><i data-w="0"></i></div><div class="val">0%</div></div>
+    <div class="brow"><div>Al azar, solo arqueros<small>cae entre las oleadas 6 y 8</small></div><div class="track"><i data-w="0"></i></div><div class="val">0%</div></div>
+    <div class="brow"><div>Óptimo, solo arqueros<small>suele caer al final</small></div><div class="track"><i data-w="18"></i></div><div class="val">18%</div></div>
+    <div class="brow"><div>Al azar, defensas mixtas y mejoras</div><div class="track"><i data-w="60"></i></div><div class="val">60%</div></div>
+    <div class="brow"><div>Óptimo, defensas mixtas y mejoras</div><div class="track"><i data-w="98"></i></div><div class="val">98%</div></div>
+  </div>
+  <p class="lead">Porcentaje de victorias en 300 partidas por estrategia. Mezclar defensas y mejorarlas es lo que gana: ninguna defensa sola alcanza.</p>
+</section>
+
+<!-- 14 -->
+<section class="slide" id="s14" data-notes="Cerrar con lo aprendido. El polimorfismo hace el código extensible. Las relaciones definen quién libera la memoria. La sobrecarga hace el código legible. Las pruebas con datos permiten equilibrar el juego. Mencionar el trabajo futuro.">
+  <div class="eyebrow">Conclusiones</div>
+  <h2>Lo que nos llevamos</h2>
+  <div class="concl">
+    <div class="cc panel"><b>Polimorfismo = extensible</b>Un enemigo o una defensa nueva es solo una clase hija. El bucle principal no cambia.</div>
+    <div class="cc panel"><b>Las relaciones definen la memoria</b>Composición, agregación y asociación dicen quién crea, quién referencia y quién libera.</div>
+    <div class="cc panel"><b>Operadores con sentido</b><code>torre -= danio;</code> se lee como una frase: «a la torre réstale el daño». Y <code>&lt;&lt;</code> / <code>&gt;&gt;</code> escriben y leen el archivo.</div>
+    <div class="cc panel"><b>Datos, no intuición</b>1500 partidas simuladas nos mostraron que el juego era demasiado fácil y cómo corregirlo.</div>
+  </div>
+  <p class="lead">Próximos pasos: enemigos voladores, un jefe final, vender defensas y guardar la partida en un archivo binario.</p>
+</section>
+
+<!-- 15 -->
+<section class="slide" id="s15" data-notes="Agradecer e invitar preguntas. Tener abierto el juego para demostrar en vivo cualquier cosa que pregunte el docente.">
+  <canvas id="mapEnd" width="3200" height="1800" aria-hidden="true"></canvas>
+  <div class="end">
+    <div class="eyebrow">Gracias por defender Eldoria con nosotros</div>
+    <h1>¿Preguntas?</h1>
+    <p>Defensa del Reino · Programación II · UTEC</p>
+  </div>
+</section>
+
+<div id="notes" hidden></div>
+<div id="bar">
+  <button id="bPrev" aria-label="Diapositiva anterior">←</button>
+  <button id="bNext" aria-label="Diapositiva siguiente">→</button>
+  <div id="progress"><i></i></div>
+  <div id="count">1 / 16</div>
+  <button id="bNotes">Notas (N)</button>
+  <button id="bFull">Pantalla completa (F)</button>
+</div>
+</div></div>
+
+<script>
+(() => {
+const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stage = document.getElementById('stage');
+const slides = [...document.querySelectorAll('.slide')];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let cur = 0;
+
+/* ---------- escala del escenario 16:9 ---------- */
+function fit() {
+  const vp = document.getElementById('viewport');
+  const s = Math.min(vp.clientWidth / 1600, vp.clientHeight / 900);
+  stage.style.transform = `scale(${s})`;
+}
+window.addEventListener('resize', fit); fit();
+
+/* ---------- motor del mapa animado (portada y cierre) ---------- */
+function MapSim(canvas, opts) {
+  const ctx = canvas.getContext('2d');
+  const K = { path: css('--path'), moss: css('--moss'), blood: css('--blood'), ice: css('--ice'), ember: css('--ember') };
+  const COLS = 24, ROWS = 10, W = canvas.width, H = canvas.height;
+  const cw = W / COLS, ch = H / ROWS;
+  const path = [];
+  let r = 2, c = 0; path.push([r, c]);
+  [['R',4],['D',3],['R',5],['U',3],['R',5],['D',5],['R',5],['U',3],['R',4]].forEach(([d, n]) => {
+    for (let i = 0; i < n; i++) { if (d==='R') c++; if (d==='D') r++; if (d==='U') r--; path.push([r, c]); }
+  });
+  const onPath = new Set(path.map(p => p.join(',')));
+  const defs = [
+    {s:'A', r:0, c:5, rng:4, rate:38, dmg:15, cd:0},
+    {s:'M', r:4, c:7, rng:3, rate:56, dmg:20, cd:10},
+    {s:'C', r:3, c:12, rng:2, rate:80, dmg:30, cd:20},
+    {s:'C', r:6, c:11, rng:2, rate:80, dmg:30, cd:50},
+    {s:'A', r:8, c:16, rng:4, rate:38, dmg:15, cd:5},
+    {s:'M', r:5, c:21, rng:3, rate:56, dmg:20, cd:30},
+  ];
+  const col = { A: K.ember, M: K.ice, C: css('--blast') };
+  const TYPES = { G:{hp:30, sp:.055}, O:{hp:70, sp:.03, arm:6}, W:{hp:150, sp:.024, regen:.08} };
+  let foes = [], fx = [], floats = [], spawn = 0, flash = 0, frame = 0;
+  const cell = (rr, cc) => [cc * cw + cw / 2, rr * ch + ch / 2];
+  function posOf(f) {
+    const i = Math.min(Math.floor(f.p), path.length - 1), j = Math.min(i + 1, path.length - 1), t = f.p - i;
+    const a = cell(...path[i]), b = cell(...path[j]);
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, path[Math.round(Math.min(f.p, path.length - 1))]];
+  }
+  function step() {
+    frame++;
+    if (--spawn <= 0) {
+      const roll = Math.random(); const t = roll < .55 ? 'G' : roll < .82 ? 'O' : 'W';
+      foes.push({ t, p: 0, hp: TYPES[t].hp, max: TYPES[t].hp, frozen: 0 });
+      spawn = 34 + Math.random() * 30;
+    }
+    for (const d of defs) {
+      if (--d.cd > 0) continue;
+      const inR = foes.filter(f => { const [, , pc] = posOf(f); return Math.abs(pc[0] - d.r) + Math.abs(pc[1] - d.c) <= d.rng; }).sort((a, b) => b.p - a.p);
+      if (!inR.length) continue;
+      const targets = d.s === 'A' ? inR.slice(0, 1) : d.s === 'M' ? inR.slice(0, 2) : inR;
+      for (const f of targets) {
+        const dmg = TYPES[f.t].arm ? Math.max(1, d.dmg - TYPES[f.t].arm) : d.dmg;
+        f.hp -= dmg; if (d.s === 'M') f.frozen = 26;
+        const [x, y] = posOf(f);
+        if (d.s !== 'C') fx.push({ k: d.s, x1: cell(d.r, d.c)[0], y1: cell(d.r, d.c)[1], x2: x, y2: y, life: 12 });
+      }
+      if (d.s === 'C') fx.push({ k: 'C', x1: cell(d.r, d.c)[0], y1: cell(d.r, d.c)[1], life: 22 });
+      d.cd = d.rate;
+    }
+    foes = foes.filter(f => {
+      const [x, y] = posOf(f);
+      if (f.hp <= 0) { floats.push({ x, y, txt: '+' + (f.t === 'G' ? 4 : f.t === 'O' ? 8 : 15), c: K.ember, life: 50 }); return false; }
+      if (f.p >= path.length - 1) { floats.push({ x, y: y - ch * .4, txt: '-' + (f.t === 'G' ? 5 : f.t === 'O' ? 12 : 25), c: K.blood, life: 50 }); flash = 18; return false; }
+      if (TYPES[f.t].regen && f.hp < f.max) f.hp = Math.min(f.max, f.hp + TYPES[f.t].regen);
+      if (f.frozen > 0) f.frozen--; else f.p += TYPES[f.t].sp * (f.t === 'G' && f.hp * 2 < f.max ? 1.6 : 1);
+      return true;
+    });
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `600 ${ch * .42}px "IBM Plex Mono", Consolas, monospace`;
+    for (let rr = 0; rr < ROWS; rr++) for (let cc = 0; cc < COLS; cc++) {
+      const k = rr + ',' + cc; let chr = '.', color = 'rgba(158,164,207,.28)';
+      if (onPath.has(k)) { chr = '#'; color = K.path; }
+      const [x, y] = cell(rr, cc); ctx.fillStyle = color; ctx.fillText(chr, x, y);
+    }
+    const [ex, ey] = cell(...path[0]); ctx.fillStyle = K.moss; ctx.font = `700 ${ch * .55}px "Pixelify Sans", monospace`; ctx.fillText('E', ex, ey);
+    const [tx, ty] = cell(...path[path.length - 1]);
+    ctx.save(); ctx.shadowColor = flash > 0 ? K.blood : K.moss; ctx.shadowBlur = 30;
+    ctx.fillStyle = flash > 0 ? K.blood : K.moss; ctx.font = `700 ${ch * .8}px "Pixelify Sans", monospace`; ctx.fillText('T', tx, ty); ctx.restore();
+    if (flash > 0) flash--;
+    for (const d of defs) {
+      const [x, y] = cell(d.r, d.c);
+      ctx.strokeStyle = col[d.s]; ctx.globalAlpha = .35; ctx.lineWidth = 3; ctx.strokeRect(x - cw * .38, y - ch * .38, cw * .76, ch * .76); ctx.globalAlpha = 1;
+      ctx.fillStyle = col[d.s]; ctx.font = `700 ${ch * .55}px "Pixelify Sans", monospace`; ctx.fillText(d.s, x, y);
+    }
+    for (const e of fx) {
+      ctx.globalAlpha = e.life / 14;
+      if (e.k === 'C') {
+        ctx.strokeStyle = col.C; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(e.x1, e.y1, (22 - e.life) * cw * .14, 0, 7); ctx.stroke();
+      } else {
+        ctx.strokeStyle = col[e.k]; ctx.lineWidth = e.k === 'M' ? 7 : 4; ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
+      }
+      ctx.globalAlpha = 1; e.life--;
+    }
+    fx = fx.filter(e => e.life > 0);
+    for (const f of foes) {
+      const [x, y] = posOf(f);
+      ctx.save(); ctx.shadowColor = f.frozen ? K.ice : K.blood; ctx.shadowBlur = 18;
+      ctx.fillStyle = f.frozen ? K.ice : K.blood; ctx.font = `700 ${ch * (f.t === 'W' ? .7 : .6)}px "Pixelify Sans", monospace`;
+      ctx.fillText(f.t, x, y); ctx.restore();
+      ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(x - cw * .35, y - ch * .48, cw * .7, 7);
+      ctx.fillStyle = K.moss; ctx.fillRect(x - cw * .35, y - ch * .48, cw * .7 * Math.max(0, f.hp / f.max), 7);
+    }
+    for (const t of floats) {
+      ctx.globalAlpha = t.life / 50; ctx.fillStyle = t.c; ctx.font = `700 ${ch * .38}px "IBM Plex Mono", monospace`;
+      ctx.fillText(t.txt, t.x, t.y - (50 - t.life) * 1.4); ctx.globalAlpha = 1; t.life--;
+    }
+    floats = floats.filter(t => t.life > 0);
+  }
+  // precalentar para que el primer cuadro ya tenga accion
+  for (let i = 0; i < 420; i++) { step(); fx.forEach(e => e.life--); fx = fx.filter(e => e.life > 0); floats.forEach(t => t.life--); floats = floats.filter(t => t.life > 0); }
+  draw();
+  return { tick() { step(); draw(); } };
+}
+
+/* ---------- animaciones por diapositiva ---------- */
+const A = {};   // id -> { init(), tick(t) }
+const started = new Set();
+
+A.s1 = { init() { this.m = MapSim(document.getElementById('mapCover')); }, tick() { this.m.tick(); } };
+A.s15 = { init() { this.m = MapSim(document.getElementById('mapEnd')); }, tick() { this.m.tick(); } };
+
+A.s2 = { init() { this.items = [...document.querySelectorAll('#checks .check')]; this.items.forEach(i => i.classList.add('on')); this.last = -1; },
+  tick(t) { const k = Math.floor(t / 650) % (this.items.length + 4);
+    if (k === this.last) return; this.last = k;
+    this.items.forEach((el, i) => el.classList.toggle('on', k >= this.items.length || i <= k)); } };
+
+/* terminal */
+const SCREENS = [
+  { k: 0, lines: ['  ===== DEFENSA DEL REINO =====', '', '  Eldoria esta bajo ataque.', '  Protege la torre durante 10 oleadas.', '', '  1. Jugar', '  2. Ver estadisticas', '  3. Salir', '', '  Elige una opcion: 1', '  Nombre del comandante: Ana', '  Ver cada oleada turno a turno (animado)? (s/n): s'] },
+  { k: 1, lines: ['  Oleada 1/10  Oro: 200  Torre [####################] 200', '                         1 1 1 1 1 1 1 1 1 1 2 2 2 2', '     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3', '   0 . . . . . . . . . . . . . . . . . . . . . . . .', '   1 . . . . . . . . . . . . . . . . . . . . . . . .', '   2 . . . . . . . . . . . . . . . . . . . # # # # T', '   3 . . . . . . . . . . . . . . . . . . # . . . . .', '   4 . . . . . . . . . . . . . # # # # # # . . . . .', '   5 . . . . . . . . . . . . . # . . . . . . . . . .', '   6 E # # # # . . . . . . # # # . . . . . . . . . .', '   7 . . . . # . . . . # # # . . . . . . . . . . . .', '   8 . . . . # . . . . # . . . . . . . . . . . . . .', '   9 . . . . # # # # # # . . . . . . . . . . . . . .', '', '  Se acerca -> Oleada 1: 4 Goblins, 0 Orcos, 0 Trolls', '  1. Colocar defensa  2. Mejorar  5. INICIAR OLEADA', '  Opcion: 1   Tipo: 1 (Arquero)   Fila: 3   Columna: 5'] },
+  { k: 2, lines: ['  Oleada 1/10  Oro: 60   Torre [####################] 200', '                         1 1 1 1 1 1 1 1 1 1 2 2 2 2', '     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3', '   0 . . . . . . . . . . . . . . . . . . . . . . . .', '   1 . . . . . . . . . . . . . . . . . . . . . . . .', '   2 . . . . . . . . . . . . . . . . . . G # # # # T', '   3 . . . . . A . . . . . . . . . . . . # . . . . .', '   4 . . . . . . . . . . . . . # G # G # G . . . . .', '   5 . . . . . . . M . . . . . # . . . . . . . . . .', '   6 E # # # # . . . . . . # # # . . . . . . . . . .', '   7 . . . . # . . . . # # # . . . . . . . . . . . .', '   8 . . . . # . . . . # . . . . . . . . . . . . . .', '   9 . . . . # # # # # # . . . . . . . . . . . . . .', '  Turno 14 | En camino: 4 | Por salir: 0', '  G:12/30  G:30/30  G:30/30  G:8/30'] },
+  { k: 3, lines: ['  ------------------------------------------', '  OLEADA 1 SUPERADA', '  Enemigos eliminados: 4/4 | Danio recibido: 0', '  Torre [####################] 200/200', '  Bonus por resistir la oleada: +35 oro', '', '  ...', '', '  *********************************************', '  *   VICTORIA! La torre resistio 10 oleadas  *', '  *********************************************', '  Resultado guardado en el historial.'] },
+];
+A.s3 = { init() { this.out = document.getElementById('termOut'); this.steps = [...document.querySelectorAll('#s3 .step')]; this.t0 = null; this.render(0, 99); },
+  render(si, n) { const s = SCREENS[si];
+    this.out.innerHTML = s.lines.slice(0, n).map(l => l.replace(/&/g,'&amp;').replace(/</g,'&lt;')).join('\n') + (n < s.lines.length ? '\n' : '') + '<span class="cur"></span>';
+    this.steps.forEach(el => el.classList.toggle('on', +el.dataset.k === s.k)); },
+  tick(t) { const per = 5200, si = Math.floor(t / per) % SCREENS.length, local = t % per;
+    const n = Math.min(SCREENS[si].lines.length, Math.floor(local / 110) + 1);
+    const key = si * 100 + n; if (key !== this.key) { this.key = key; this.render(si, n); } } };
+
+/* arquitectura */
+A.arch = { init() {
+  const svg = document.getElementById('archSvg'), NS = 'http://www.w3.org/2000/svg';
+  const N = { Consola:[110,60], Juego:[560,60], Estadisticas:[960,60], Partida:[1300,60],
+    Jugador:[260,230], Mapa:[560,230], Oleada:[960,230], Torre:[1300,230],
+    Defensa:[420,400], Enemigo:[1040,400],
+    Arquero:[230,540], Mago:[420,540], Canon:[610,540], Goblin:[850,540], Orco:[1040,540], Troll:[1230,540] };
+  const ABS = ['Defensa','Enemigo'];
+  const E = [
+    ['Juego','Mapa','comp'],['Juego','Torre','comp'],['Juego','Jugador','comp'],['Juego','Estadisticas','comp'],['Juego','Defensa','comp'],
+    ['Oleada','Enemigo','comp'],['Estadisticas','Partida','comp'],['Mapa','Defensa','agg'],['Defensa','Enemigo','assoc'],
+    ['Juego','Oleada','dep'],['Juego','Consola','dep'],['Oleada','Torre','dep'],['Oleada','Mapa','dep'],['Mapa','Enemigo','dep'],
+    ['Arquero','Defensa','inh'],['Mago','Defensa','inh'],['Canon','Defensa','inh'],['Goblin','Enemigo','inh'],['Orco','Enemigo','inh'],['Troll','Enemigo','inh'] ];
+  const BW = 170, BH = 50;
+  const defs = document.createElementNS(NS, 'defs');
+  defs.innerHTML = `
+    <marker id="mComp" viewBox="0 0 22 12" refX="1" refY="6" markerWidth="22" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1 6 L11 1 L21 6 L11 11 Z" fill="${css('--parch')}"/></marker>
+    <marker id="mAgg" viewBox="0 0 22 12" refX="1" refY="6" markerWidth="22" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1 6 L11 1 L21 6 L11 11 Z" fill="${css('--night')}" stroke="${css('--ice')}" stroke-width="2"/></marker>
+    <marker id="mInh" viewBox="0 0 18 16" refX="17" refY="8" markerWidth="18" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L17 8 L1 15 Z" fill="${css('--night')}" stroke="${css('--moss')}" stroke-width="2"/></marker>
+    <marker id="mArr" viewBox="0 0 14 12" refX="13" refY="6" markerWidth="14" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L13 6 L1 11" fill="none" stroke="${css('--blood')}" stroke-width="2"/></marker>
+    <marker id="mDep" viewBox="0 0 14 12" refX="13" refY="6" markerWidth="14" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L13 6 L1 11" fill="none" stroke="${css('--muted')}" stroke-width="2"/></marker>`;
+  svg.appendChild(defs);
+  const clip = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1]; const sx = Math.abs(dx) > 0 ? (BW / 2) / Math.abs(dx) : 1e9, sy = Math.abs(dy) > 0 ? (BH / 2) / Math.abs(dy) : 1e9; const s = Math.min(sx, sy); return [a[0] + dx * s, a[1] + dy * s]; };
+  const gE = document.createElementNS(NS, 'g'), gN = document.createElementNS(NS, 'g'); svg.append(gE, gN);
+  this.edges = E.map(([a, b, k]) => {
+    const p1 = clip(N[a], N[b]), p2 = clip(N[b], N[a]);
+    const l = document.createElementNS(NS, 'path'); l.setAttribute('d', `M${p1[0]} ${p1[1]} L${p2[0]} ${p2[1]}`);
+    l.setAttribute('class', 'edge ' + k + (k === 'comp' || k === 'agg' || k === 'inh' || k === 'assoc' ? ' flow' : ''));
+    if (k === 'comp') l.setAttribute('marker-start', 'url(#mComp)');
+    if (k === 'agg') l.setAttribute('marker-start', 'url(#mAgg)');
+    if (k === 'inh') l.setAttribute('marker-end', 'url(#mInh)');
+    if (k === 'assoc') l.setAttribute('marker-end', 'url(#mArr)');
+    if (k === 'dep') l.setAttribute('marker-end', 'url(#mDep)');
+    gE.appendChild(l); return { a, b, l };
+  });
+  this.nodes = {};
+  for (const [n, [x, y]] of Object.entries(N)) {
+    const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'node' + (ABS.includes(n) ? ' abs' : '')); g.setAttribute('tabindex', '0');
+    g.innerHTML = `<rect x="${x - BW / 2}" y="${y - BH / 2}" width="${BW}" height="${BH}" rx="8"/><text x="${x}" y="${y}">${n === 'Canon' ? 'Cañón' : n}</text>`;
+    const on = () => this.focus(n), off = () => this.focus(null);
+    g.addEventListener('mouseenter', on); g.addEventListener('mouseleave', off); g.addEventListener('focus', on); g.addEventListener('blur', off);
+    gN.appendChild(g); this.nodes[n] = g;
+  }
+  this.auto = ['Juego','Oleada','Mapa','Defensa','Enemigo']; this.hover = false;
+},
+focus(n, auto) {
+  if (!auto) this.hover = !!n;
+  const root = document.getElementById('arch'); root.classList.toggle('focus', !!n);
+  Object.values(this.nodes).forEach(g => g.classList.remove('hot', 'near'));
+  this.edges.forEach(e => e.l.classList.remove('hot'));
+  if (!n) return;
+  this.nodes[n].classList.add('hot');
+  this.edges.forEach(e => { if (e.a === n || e.b === n) { e.l.classList.add('hot'); this.nodes[e.a === n ? e.b : e.a].classList.add('near'); } });
+},
+tick(t) { if (this.hover) return; const k = Math.floor(t / 2200) % (this.auto.length + 1); if (k === this.k) return; this.k = k; this.focus(k < this.auto.length ? this.auto[k] : null, true); } };
+
+/* herencia */
+A.s5 = { init() { this.e = [...document.querySelectorAll('[data-tree="e"] .kid')]; this.d = [...document.querySelectorAll('[data-tree="d"] .kid')]; },
+  tick(t) { const k = Math.floor(t / 1300) % 3; this.e.forEach((el, i) => el.classList.toggle('on', i === k)); this.d.forEach((el, i) => el.classList.toggle('on', i === (k + 1) % 3)); } };
+
+/* polimorfismo */
+A.s6 = { init() {
+  this.types = ['A','M','C','A','C','M'];
+  const arr = document.getElementById('polyArr');
+  this.cells = this.types.map(s => { const d = document.createElement('div'); d.className = 'cell'; d.textContent = s; d.style.color = s === 'A' ? css('--ember') : s === 'M' ? css('--ice') : css('--blast'); arr.appendChild(d); return d; });
+  this.ptr = document.getElementById('polyPtr'); this.say = document.getElementById('polySay');
+  const lane = document.getElementById('polyLane');
+  this.tower = document.createElement('div'); this.tower.className = 'tower-def'; lane.appendChild(this.tower);
+  this.foes = [0,1,2,3].map(i => { const f = document.createElement('div'); f.className = 'foe'; f.textContent = 'GOGW'[i]; f.style.left = (230 + i * 150) + 'px'; lane.appendChild(f); return f; });
+  this.shots = [0,1].map(() => { const s = document.createElement('div'); s.className = 'shot'; lane.appendChild(s); return s; });
+  this.boom = document.createElement('div'); this.boom.className = 'boom'; this.boom.style.left = '67px'; this.boom.style.top = '67px'; lane.appendChild(this.boom);
+  this.k = -1; this.fire(0);
+},
+fire(i) {
+  const s = this.types[i];
+  this.cells.forEach((c, j) => c.classList.toggle('on', j === i));
+  this.ptr.style.transform = `translateX(${i * 92}px)`;
+  this.tower.textContent = s; this.tower.style.color = this.tower.style.borderColor = s === 'A' ? css('--ember') : s === 'M' ? css('--ice') : css('--blast');
+  this.foes.forEach(f => f.classList.remove('frozen', 'hit'));
+  this.shots.forEach(sh => { sh.style.transition = 'none'; sh.style.opacity = 0; });
+  const shoot = (sh, foe, color, w) => {
+    const x1 = 67, y1 = 67, x2 = foe.offsetLeft + 28, y2 = foe.offsetTop + 28;
+    sh.style.left = x1 + 'px'; sh.style.top = y1 + 'px'; sh.style.width = Math.hypot(x2 - x1, y2 - y1) + 'px';
+    sh.style.transform = `rotate(${Math.atan2(y2 - y1, x2 - x1)}rad)`; sh.style.background = color; sh.style.height = w + 'px';
+    requestAnimationFrame(() => { sh.style.transition = 'opacity .7s'; sh.style.opacity = 1; setTimeout(() => sh.style.opacity = 0, 450); });
+    void foe.offsetWidth; foe.classList.add('hit');
+  };
+  if (s === 'A') { shoot(this.shots[0], this.foes[3], css('--ember'), 4); this.say.innerHTML = '<b class="c-ember">Arquero::atacar()</b> &rarr; una flecha a su objetivo fijo'; }
+  if (s === 'M') { shoot(this.shots[0], this.foes[3], css('--ice'), 8); shoot(this.shots[1], this.foes[2], css('--ice'), 8); this.foes[3].classList.add('frozen'); this.foes[2].classList.add('frozen'); this.say.innerHTML = '<b class="c-ice">Mago::atacar()</b> &rarr; 2 enemigos y los congela'; }
+  if (s === 'C') { this.boom.classList.remove('go'); void this.boom.offsetWidth; this.boom.classList.add('go'); this.foes.forEach(f => { void f.offsetWidth; f.classList.add('hit'); }); this.say.innerHTML = '<b class="c-blast">Canon::atacar()</b> &rarr; explosión a todos en rango'; }
+},
+tick(t) { const k = Math.floor(t / 1700) % this.types.length; if (k !== this.k) { this.k = k; this.fire(k); } } };
+
+/* enemigos */
+function floatTxt(box, txt, color, x, y) { const f = document.createElement('div'); f.className = 'float'; f.textContent = txt; f.style.color = color; f.style.left = x + 'px'; f.style.top = y + 'px'; box.appendChild(f); setTimeout(() => f.remove(), 1000); }
+A.s7 = { init() {
+  this.g = { box: document.getElementById('mG'), hp: 30, x: 10, last: 0 };
+  this.o = { box: document.getElementById('mO'), hp: 70, last: 0 };
+  this.w = { box: document.getElementById('mW'), hp: 150, last: 0, reg: 0 };
+  this.paint();
+},
+paint() {
+  const g = this.g, o = this.o, w = this.w;
+  g.box.querySelector('.hp i').style.width = (g.hp / 30 * 100) + '%';
+  const gw = g.box.querySelector('.who'); gw.style.left = g.x + 'px';
+  g.box.querySelector('.tag').textContent = g.hp * 2 < 30 ? 'PÁNICO: vel 3' : 'vel 2';
+  g.box.querySelector('.tag').style.color = g.hp * 2 < 30 ? css('--blood') : css('--ember');
+  o.box.querySelector('.hp i').style.width = (o.hp / 70 * 100) + '%';
+  w.box.querySelector('.hp i').style.width = (w.hp / 150 * 100) + '%';
+},
+tick(t) {
+  const g = this.g, o = this.o, w = this.w;
+  const maxX = g.box.clientWidth - 40;
+  g.x += g.hp * 2 < 30 ? 3.2 : 1.4;
+  if (t - g.last > 900 && g.hp > 0) { g.last = t; g.hp = Math.max(0, g.hp - 6); floatTxt(g.box, '-6', css('--ember'), g.x, 40); }
+  if (g.x > maxX || g.hp <= 0) { g.x = 10; g.hp = 30; }
+  if (t - o.last > 1100) { o.last = t; o.hp -= 9; floatTxt(o.box, '15 → 9', css('--ice'), o.box.clientWidth * .44 + 40, 50); if (o.hp <= 0) o.hp = 70; }
+  if (t - w.last > 1600) { w.last = t; w.hp = Math.max(20, w.hp - 45); floatTxt(w.box, '-45', css('--blast'), w.box.clientWidth * .44 + 40, 50); }
+  if (t - w.reg > 400 && w.hp < 150) { w.reg = t; w.hp = Math.min(150, w.hp + 6); floatTxt(w.box, '+6', css('--moss'), w.box.clientWidth * .44 - 50, 60); }
+  this.paint();
+} };
+
+/* relaciones */
+A.rel = { init() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const gd = document.getElementById('relDefs'), gf = document.getElementById('relFoes');
+  this.defs = [['A', 110], ['M', 230], ['C', 350]].map(([s, x]) => {
+    const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'unit');
+    const color = s === 'A' ? css('--ember') : s === 'M' ? css('--ice') : css('--blast');
+    g.innerHTML = `<rect x="${x - 34}" y="105" width="68" height="68" rx="8" fill="${css('--night')}" stroke="${color}" stroke-width="3"/><text x="${x}" y="152" text-anchor="middle" style="font:700 38px var(--f-display); fill:${color}">${s}</text>`;
+    gd.appendChild(g); return { g, x };
+  });
+  this.own = this.defs.map(d => { const p = document.createElementNS(NS, 'path'); p.setAttribute('class', 'own'); p.setAttribute('d', `M${d.x} 92 L${d.x} 104`); gd.appendChild(p); return p; });
+  this.refs = this.defs.map(d => { const p = document.createElementNS(NS, 'path'); p.setAttribute('class', 'ref'); p.setAttribute('d', `M${d.x} 360 C ${d.x} 260, ${d.x} 230, ${d.x} 176`); gd.appendChild(p); return p; });
+  this.foes = [['G', 1000, 170], ['G', 1140, 240], ['O', 1280, 170], ['W', 1060, 330], ['G', 1240, 330]].map(([s, x, y]) => {
+    const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'unit');
+    g.innerHTML = `<text x="${x}" y="${y}" text-anchor="middle" style="font:700 46px var(--f-display); fill:${css('--blood')}">${s}</text>`;
+    gf.appendChild(g); return { g, x, y };
+  });
+  this.tgt = document.getElementById('relTarget'); this.flash = document.getElementById('relFlash'); this.flash2 = document.getElementById('relFlash2');
+  this.cap = document.getElementById('relCap'); this.chips = [...document.querySelectorAll('#relChips .chip')];
+  this.chips.forEach(c => c.addEventListener('click', () => { this.manual = +c.dataset.p; this.mt = performance.now(); this.show(this.manual, 2); }));
+  this.aim(0); this.show(0, 0);
+},
+aim(i) { const f = this.foes[i]; this.tgt.setAttribute('d', `M144 139 C 500 ${f.y - 120}, 700 ${f.y - 60}, ${f.x - 30} ${f.y - 16}`); },
+show(p, sub) {
+  this.chips.forEach((c, i) => c.classList.toggle('on', i === p));
+  const all = [...this.defs.map(d => d.g), ...this.foes.map(f => f.g)];
+  all.forEach(g => g.classList.remove('gone'));
+  this.refs.forEach(r => r.style.opacity = 1); this.own.forEach(r => r.style.opacity = 1);
+  this.tgt.style.opacity = p === 2 ? 1 : .25; this.flash.textContent = ''; this.flash2.textContent = '';
+  const destroy = sub >= 1;
+  if (p === 0) {
+    this.cap.innerHTML = '<b>Composición.</b> La Oleada crea a sus enemigos con <code>new</code> y su destructor los borra: si la oleada muere, ellos también.';
+    if (destroy) { this.flash.textContent = '~Oleada() { delete e; }'; this.foes.forEach(f => f.g.classList.add('gone')); this.tgt.style.opacity = 0; }
+  } else if (p === 1) {
+    this.cap.innerHTML = '<b>Agregación.</b> El Mapa solo guarda punteros para dibujar. Al reiniciarse los olvida, pero las defensas siguen vivas porque su dueño es Juego.';
+    if (destroy) { this.flash2.textContent = 'mapa.quitarDefensas();'; this.flash2.setAttribute('y', 425); this.refs.forEach(r => r.style.opacity = 0); }
+  } else if (p === 2) {
+    this.cap.innerHTML = '<b>Asociación.</b> <code>Enemigo* objetivo</code>: el Arquero recuerda a quién apunta y cambia de objetivo, sin ser su dueño.';
+    this.aim(sub % this.foes.length);
+  } else {
+    this.cap.innerHTML = '<b>Composición.</b> Juego crea cada defensa y en <code>liberarDefensas()</code> hace <code>delete</code>. Primero el Mapa las olvida y luego se destruyen.';
+    if (destroy) { this.flash2.textContent = 'for (d : defensas) delete d;'; this.flash2.setAttribute('y', 200); this.refs.forEach(r => r.style.opacity = 0); this.own.forEach(r => r.style.opacity = 0); this.defs.forEach(d => d.g.classList.add('gone')); this.tgt.style.opacity = 0; }
+  }
+},
+tick(t) {
+  if (this.manual != null && performance.now() - this.mt < 6000) { const sub = Math.floor((performance.now() - this.mt) / 1300) + 1; if (sub !== this.lastSub) { this.lastSub = sub; this.show(this.manual, sub); } return; }
+  this.manual = null;
+  const p = Math.floor(t / 4800) % 4, sub = Math.floor((t % 4800) / 1600);
+  const key = p * 10 + sub; if (key !== this.key) { this.key = key; this.show(p, p === 2 ? sub + Math.floor(t / 4800) : sub); }
+} };
+
+/* operadores */
+A.s9 = { init() { this.ops = [...document.querySelectorAll('#ops .op')]; this.k = -1; this.reset(); },
+  reset() { const o = this.ops;
+    o[0].querySelector('.bar i').style.width = '100%'; o[0].querySelector('[data-v]').textContent = '30/30';
+    o[1].querySelectorAll('.pips i').forEach((p, i) => p.classList.toggle('f', i === 0)); o[1].querySelector('[data-v]').textContent = 'Nv.1';
+    o[2].querySelector('.bar i').style.width = '100%'; o[2].querySelector('[data-v]').textContent = '200';
+    o[3].querySelector('[data-v]').textContent = '200';
+    o[4].querySelector('[data-v]').textContent = '_'; o[5].querySelector('[data-v]').textContent = '_'; },
+  run(i) { const o = this.ops[i];
+    if (i === 0) { o.querySelector('.bar i').style.width = '50%'; o.querySelector('[data-v]').textContent = '15/30'; }
+    if (i === 1) { o.querySelectorAll('.pips i').forEach((p, j) => p.classList.toggle('f', j <= 1)); o.querySelector('[data-v]').textContent = 'Nv.2'; }
+    if (i === 2) { o.querySelector('.bar i').style.width = '87.5%'; o.querySelector('[data-v]').textContent = '175'; }
+    if (i === 3) { let v = 200; const el = o.querySelector('[data-v]'); const id = setInterval(() => { v += 2; el.textContent = v; if (v >= 230) clearInterval(id); }, 40); }
+    if (i === 4) { o.querySelector('[data-v]').innerHTML = '<span class="c-blood">O Orco Nv.3</span> | Vida 119/119 | Vel 1'; o.querySelector('[data-v]').style.fontSize = '15px'; }
+    if (i === 5) { o.querySelector('[data-v]').innerHTML = 'Ana | ... | VICTORIA | 10 &rarr; <span class="c-moss">Partida{Ana, 10}</span>'; o.querySelector('[data-v]').style.fontSize = '15px'; } },
+  tick(t) { const k = Math.floor(t / 1500) % (this.ops.length + 1); if (k === this.k) return; this.k = k;
+    if (k === this.ops.length) { this.ops.forEach(o => o.classList.remove('on')); return; }
+    if (k === 0) this.reset();
+    this.ops.forEach((o, i) => o.classList.toggle('on', i === k)); this.run(k); } };
+
+/* algoritmo */
+A.algo = { init() {
+  const svg = document.getElementById('algoSvg'), NS = 'http://www.w3.org/2000/svg';
+  const N = {
+    A: { x: 130, y: 80, w: 200, h: 70, t: 'Menú', c: '<b>Menú principal:</b> el jugador elige 1. Jugar.' },
+    B: { x: 380, y: 80, w: 200, h: 70, t: 'Nueva partida', c: '<b>Nueva partida:</b> nombre, mapa aleatorio, torre y oro iniciales.' },
+    C: { x: 660, y: 80, w: 220, h: 70, t: 'Preparación', c: '<b>Preparación:</b> colocar y mejorar defensas con el oro disponible.' },
+    D: { x: 960, y: 80, w: 220, h: 70, t: 'Ejecutar oleada', c: '<b>Oleada:</b> bucle de turnos hasta que todos los enemigos terminen.' },
+    E: { x: 1250, y: 80, w: 200, h: 110, t: '¿Torre en pie?', dec: 1, c: '<b>¿La torre sigue en pie?</b> Si cae, la partida termina en derrota.' },
+    F: { x: 1250, y: 270, w: 200, h: 110, t: '¿oleada < 10?', dec: 1, c: '<b>¿Quedan oleadas?</b> Si ya fue la 10, el jugador gana.' },
+    G: { x: 960, y: 270, w: 220, h: 70, t: 'oleada++ · bonus', c: '<b>oleada++ y bonus de oro:</b> el bucle vuelve a la preparación.' },
+    R: { x: 1250, y: 450, w: 220, h: 70, t: 'Victoria / derrota', c: '<b>Resultado:</b> se muestra la victoria o la derrota.' },
+    H: { x: 880, y: 450, w: 220, h: 70, t: 'historial.txt <<', c: '<b>Registro:</b> la Partida se agrega a historial.txt y se vuelve al menú.' } };
+  const edges = [
+    [[230,80],[270,80]], [[480,80],[550,80]], [[770,80],[850,80]], [[1070,80],[1150,80]],
+    [[1250,135],[1250,215]], [[1150,270],[1070,270]], [[850,270],[660,270],[660,115], 'back'],
+    [[1350,80],[1400,80],[1400,450],[1360,450]], [[1250,325],[1250,415]], [[1140,450],[990,450]], [[770,450],[130,450],[130,115]] ];
+  let html = '<defs><marker id="aAr" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M1 1 L11 6 L1 11 Z" fill="' + css('--muted') + '"/></marker></defs>';
+  for (const e of edges) { const back = e[e.length - 1] === 'back'; const pts = back ? e.slice(0, -1) : e;
+    html += `<polyline class="fe${back ? ' back' : ''}" points="${pts.map(p => p.join(',')).join(' ')}" marker-end="url(#aAr)"/>`; }
+  html += '<text class="yn" x="1260" y="180">sí</text><text class="yn" x="1095" y="258">sí</text><text class="yn" x="1360" y="66">no</text><text class="yn" x="1260" y="378">no</text>';
+  html += '<text class="yn" x="180" y="290" style="fill:var(--muted)">el bucle se repite 10 veces</text>';
+  this.g = {};
+  for (const [k, n] of Object.entries(N)) {
+    const shape = n.dec ? `<polygon points="${n.x},${n.y - n.h / 2} ${n.x + n.w / 2},${n.y} ${n.x},${n.y + n.h / 2} ${n.x - n.w / 2},${n.y}"/>`
+                        : `<rect x="${n.x - n.w / 2}" y="${n.y - n.h / 2}" width="${n.w}" height="${n.h}" rx="${k === 'A' ? 35 : 8}"/>`;
+    html += `<g class="fn${n.dec ? ' dec' : ''}" data-k="${k}">${shape}<text x="${n.x}" y="${n.y}">${n.t}</text></g>`;
+  }
+  html += '<text class="olc" id="algoOl" x="180" y="250"></text><circle class="tok" id="algoTok" r="13" cx="130" cy="80"/>';
+  svg.innerHTML = html;
+  svg.querySelectorAll('.fn').forEach(g => this.g[g.dataset.k] = g);
+  this.N = N; this.cap = document.getElementById('algoCap'); this.tok = document.getElementById('algoTok'); this.ol = document.getElementById('algoOl');
+  // recorrido de la ficha: 2 vueltas completas del bucle y luego la ultima oleada
+  const seq = ['A','B','C','D','E','F','G',[660,270],'C','D','E','F','G',[660,270],'C','D','E','F','R','H',[130,450],'A'];
+  const ol =  [ 0,  1,  1,  1,  1,  1,  1,   2,      2,  2,  2,  2,  2,   3,     10, 10, 10, 10, 10, 10,  10,      0 ];
+  this.pts = seq.map((s, i) => typeof s === 'string' ? { x: N[s].x, y: N[s].y, k: s, ol: ol[i] } : { x: s[0], y: s[1], k: null, ol: ol[i] });
+  this.len = [0]; for (let i = 1; i < this.pts.length; i++) this.len.push(this.len[i - 1] + Math.hypot(this.pts[i].x - this.pts[i - 1].x, this.pts[i].y - this.pts[i - 1].y));
+  this.total = this.len[this.len.length - 1]; this.last = null;
+},
+tick(t) {
+  const speed = 0.32, pause = 650;   // px por ms y pausa en cada nodo
+  const nodes = this.pts.length, cycle = this.total / speed + nodes * pause;
+  let local = t % cycle, i = 0, x = this.pts[0].x, y = this.pts[0].y, k = this.pts[0].k, o = this.pts[0].ol;
+  for (i = 0; i < nodes; i++) {
+    if (local < pause) { x = this.pts[i].x; y = this.pts[i].y; k = this.pts[i].k; o = this.pts[i].ol; break; }
+    local -= pause;
+    if (i === nodes - 1) break;
+    const seg = (this.len[i + 1] - this.len[i]) / speed;
+    if (local < seg) { const f = local / seg; x = this.pts[i].x + (this.pts[i + 1].x - this.pts[i].x) * f; y = this.pts[i].y + (this.pts[i + 1].y - this.pts[i].y) * f; k = this.pts[i].k; o = this.pts[i].ol; break; }
+    local -= seg;
+  }
+  this.tok.setAttribute('cx', x); this.tok.setAttribute('cy', y);
+  this.ol.textContent = o ? `Oleada ${o}/10` : '';
+  if (k && k !== this.last) { this.last = k; Object.entries(this.g).forEach(([kk, g]) => g.classList.toggle('on', kk === k)); this.cap.innerHTML = this.N[k].c; }
+} };
+
+/* bucle */
+A.loop = { init() {
+  const svg = document.getElementById('loopSvg'), NS = 'http://www.w3.org/2000/svg';
+  const names = [['Entra', 'un enemigo'], ['Atacan', 'las defensas'], ['Se cobra', 'el oro'], ['Avanzan', 'los enemigos'], ['Llegan a', 'la torre']];
+  svg.innerHTML = `<circle class="ring" cx="310" cy="310" r="230"/><text class="center1" x="310" y="270">TURNO</text><text class="center2" x="310" y="360" id="loopN">1</text><circle class="orb" id="orb" r="12" cx="310" cy="80"/>`;
+  this.nodes = names.map(([a, b], i) => {
+    const ang = -Math.PI / 2 + i * 2 * Math.PI / 5, x = 310 + 230 * Math.cos(ang), y = 310 + 230 * Math.sin(ang);
+    const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'stepc');
+    g.innerHTML = `<circle cx="${x}" cy="${y}" r="58"/><text class="num" x="${x}" y="${y - 6}">${i + 1}</text><text x="${x}" y="${y + 22}">${a}</text><text x="${x}" y="${y + 84}" style="fill:var(--muted)">${b}</text>`;
+    svg.appendChild(g); return g; });
+  this.orb = document.getElementById('orb'); this.n = document.getElementById('loopN');
+  this.lines = [...document.querySelectorAll('#loopCode [data-l]')];
+},
+tick(t) { const per = 6000, f = (t % per) / per, ang = -Math.PI / 2 + f * 2 * Math.PI;
+  this.orb.setAttribute('cx', 310 + 230 * Math.cos(ang)); this.orb.setAttribute('cy', 310 + 230 * Math.sin(ang));
+  const k = Math.floor(f * 5 + .5) % 5;
+  this.nodes.forEach((g, i) => g.classList.toggle('on', i === k)); this.lines.forEach((l, i) => l.classList.toggle('hl', i === k));
+  this.n.textContent = Math.floor(t / per) % 40 + 1; } };
+
+/* archivo */
+const HIST = [['Ana','2026-11-20 18:04','VICTORIA',10,148,35,95,9],['Luis','2026-11-21 10:31','DERROTA',6,61,200,40,5],['Bea','2026-11-22 16:12','VICTORIA',10,151,12,130,8],['Jorge','2026-11-23 09:47','DERROTA',8,97,200,15,7]];
+const pts = h => h[3] * 100 + h[4] * 5 + (h[2] === 'VICTORIA' ? 500 : 0) - h[5];
+A.s11 = { init() { this.out = document.getElementById('fileOut'); this.body = document.getElementById('histBody'); this.rank = document.getElementById('rankLine'); this.k = -1; this.render(HIST.length + 1); },
+  render(n) {
+    const head = '<span class="c"># Jugador              | Fecha            | Resultado | Oleadas | Eliminados | Danio |   Oro | Defensas\n# ---------------------+------------------+-----------+---------+------------+-------+-------+---------</span>\n';
+    const W = [20, 16, 9, 7, 10, 5, 5, 8];   // mismos anchos (setw) que operator<< de Partida
+    const fila = h => '  ' + h.map((v, i) => i < 3 ? String(v).padEnd(W[i]) : String(v).padStart(W[i])).join(' | ');
+    this.out.innerHTML = head + HIST.slice(0, n).map(fila).join('\n') + (n <= HIST.length ? '<span class="cur" style="display:inline-block;width:9px;height:17px;background:var(--ember)"></span>' : '');
+    this.body.innerHTML = HIST.slice(0, n).map((h, i) => `<tr class="${i === n - 1 ? 'new' : ''}"><td>${h[0]}</td><td class="${h[2] === 'VICTORIA' ? 'win' : 'lose'}">${h[2]}</td><td>${h[3]}/10</td><td>${pts(h)}</td></tr>`).join('');
+    if (n > HIST.length) { const top = [...HIST].sort((a, b) => pts(b) - pts(a)).slice(0, 3); this.rank.innerHTML = 'Top 3 con <code>operator&lt;</code>: ' + top.map((h, i) => `<b class="c-ember">${i + 1}. ${h[0]}</b> ${pts(h)}`).join(' · '); }
+    else this.rank.innerHTML = 'Ranking con <code>operator&lt;</code>';
+  },
+  tick(t) { const k = Math.floor(t / 1300) % (HIST.length + 4); if (k === this.k) return; this.k = k; this.render(Math.min(k, HIST.length + 1)); } };
+
+/* memoria */
+A.s12 = { init() {
+  const mem = document.getElementById('mem'); this.log = document.getElementById('memLog');
+  this.rows = []; this.ptrs = [];
+  const col = document.createElement('div'); col.className = 'ptrcol'; mem.appendChild(col);
+  for (let i = 0; i < 5; i++) {
+    const p = document.createElement('div'); p.className = 'pbox'; p.textContent = 'celdas[' + i + ']'; col.appendChild(p); this.ptrs.push(p);
+    const r = document.createElement('div'); r.className = 'rowarr'; r.style.top = (i * 76) + 'px';
+    const pattern = ['.......##..','####...#...','...#####...','...........','..........T'][i];
+    for (let j = 0; j < 22; j++) { const c = document.createElement('i'); const ch = pattern[j % pattern.length]; c.textContent = ch; if (ch !== '.') c.className = 'p'; r.appendChild(c); }
+    mem.appendChild(r); this.rows.push(r);
+  }
+  this.k = -1;
+},
+tick(t) { const k = Math.floor(t / 700) % 16; if (k === this.k) return; this.k = k;
+  // 0: new char*[] ; 1-5 filas ; 6-8 uso ; 9-13 delete filas ; 14 delete[] celdas ; 15 vacio
+  const showP = k >= 0 && k <= 14, nRows = k >= 1 && k <= 8 ? Math.min(5, k) : k >= 9 && k <= 13 ? 13 - k : 0;
+  this.ptrs.forEach(p => p.style.opacity = showP ? 1 : .1);
+  this.rows.forEach((r, i) => r.style.opacity = i < nRows ? 1 : 0);
+  this.log.textContent = k === 0 ? 'celdas = new char*[filas];' : k <= 5 ? `celdas[${k - 1}] = new char[columnas];` : k <= 8 ? 'dibujar(): el mapa en uso' : k <= 13 ? `delete[] celdas[${13 - k}];` : k === 14 ? 'delete[] celdas;' : '~Mapa(): memoria liberada';
+} };
+
+/* balance */
+A.s13 = { init() { this.bars = [...document.querySelectorAll('#bars .track i')]; },
+  enter() { this.bars.forEach(b => b.style.width = '0'); setTimeout(() => this.bars.forEach(b => b.style.width = Math.max(1, +b.dataset.w) + '%'), 60); },
+  tick() {} };
+document.querySelectorAll('#bars .track i').forEach(b => b.style.width = Math.max(1, +b.dataset.w) + '%');
+
+/* ---------- navegacion ---------- */
+const notesEl = document.getElementById('notes');
+let t0 = performance.now();
+function go(n) {
+  n = Math.max(0, Math.min(slides.length - 1, n));
+  slides.forEach((s, i) => { s.classList.toggle('active', i === n); s.classList.toggle('prev', i < n); });
+  cur = n; t0 = performance.now();
+  const id = slides[n].id, a = A[id];
+  if (a && !started.has(id)) { a.init(); started.add(id); }
+  if (a && a.enter) a.enter();
+  document.querySelector('#progress i').style.width = ((n + 1) / slides.length * 100) + '%';
+  document.getElementById('count').textContent = `${n + 1} / ${slides.length}`;
+  notesEl.innerHTML = '<b>Notas del orador</b>' + (slides[n].dataset.notes || '');
+  try { if (location.hash !== '#p' + (n + 1)) history.replaceState(null, '', '#p' + (n + 1)); } catch (_) {}
+}
+function loop(now) {
+  const id = slides[cur].id, a = A[id];
+  if (a && started.has(id) && !RM) a.tick(now - t0);
+  requestAnimationFrame(loop);
+}
+document.addEventListener('keydown', e => {
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key) && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); go(cur + 1); }
+  else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+  else if (e.key === 'Home') go(0);
+  else if (e.key === 'End') go(slides.length - 1);
+  else if (e.key === 'n' || e.key === 'N') notesEl.hidden = !notesEl.hidden;
+  else if (e.key === 'f' || e.key === 'F') toggleFull();
+});
+function toggleFull() { try { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); } catch (_) {} }
+document.getElementById('bPrev').onclick = () => go(cur - 1);
+document.getElementById('bNext').onclick = () => go(cur + 1);
+document.getElementById('bNotes').onclick = () => { notesEl.hidden = !notesEl.hidden; };
+document.getElementById('bFull').onclick = toggleFull;
+let tx = null;
+stage.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+stage.addEventListener('touchend', e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1)); tx = null; });
+window.addEventListener('hashchange', () => { const m = /^#p(\d+)$/.exec(location.hash); if (m) go(+m[1] - 1); });
+const m0 = /^#p(\d+)$/.exec(location.hash);
+const startAll = () => { go(m0 ? +m0[1] - 1 : 0); requestAnimationFrame(loop); };
+(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(startAll, startAll);
+})();
+</script>

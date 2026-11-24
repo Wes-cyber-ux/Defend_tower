@@ -2,80 +2,52 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "../enemigos/Enemigo.h"    
-using namespace std;
 
+class Enemigo;   // declaraciones anticipadas: evitan inclusiones circulares
 class Mapa;
 
+// Clase base ABSTRACTA de las defensas.
 class Defensa {
 protected:
-    string nombre;
+    std::string nombre;
     int fila;
     int columna;
     int danio;
-    int rango;
+    int rango;              // distancia Manhattan maxima de ataque
     int nivel;
-    int costo;
+    int costo;              // precio de construccion
+    Enemigo* objetivo;      // ASOCIACION: enemigo al que esta apuntando (no le pertenece)
+
+    bool enRango(const Enemigo& e, const Mapa& mapa) const;
+    // Enemigos en el camino y dentro del rango, ordenados del mas adelantado al menos.
+    std::vector<Enemigo*> enemigosEnRango(const std::vector<Enemigo*>& enemigos,
+                                          const Mapa& mapa) const;
 
 public:
-    Defensa(string a, int b, int c, int d, int e, int f, int g) : nombre(a), fila(b), columna(c), danio(d), rango(e), nivel(f), costo(g) {}
-    
-    virtual ~Defensa() {}
+    static constexpr int NIVEL_MAXIMO = 4;
 
-    virtual void atacar(vector<Enemigo*>& enemigos, const Mapa& mapa) = 0;
+    Defensa(const std::string& nombre, int fila, int columna, int danio, int rango, int costo);
+    virtual ~Defensa() = default;
 
+    // ---- Polimorfismo: cada tipo ataca de forma distinta ----
+    // Devuelve cuantos enemigos golpeo en este turno.
+    virtual int atacar(std::vector<Enemigo*>& enemigos, const Mapa& mapa) = 0;
     virtual char simbolo() const = 0;
+    virtual std::string descripcion() const = 0;
 
+    // ---- Sobrecarga de operadores ----
+    Defensa& operator+=(int niveles);       // mejora:  *defensa += 1;
+    friend std::ostream& operator<<(std::ostream& os, const Defensa& d);
 
-    Defensa& operator+=(int niveles) {
-        nivel += niveles;
-        danio += 10 * niveles;   
-        rango += 1 * niveles;
-        return *this;            
-    }
+    int costoMejora() const;
+    bool puedeMejorar() const;
+    void olvidarObjetivo();
 
-   
-    friend ostream& operator<<(ostream& os, const Defensa& d) {
-        os << d.simbolo() << " " << d.nombre
-           << " | Nv." << d.nivel
-           << " | Danio: " << d.danio
-           << " | Rango: " << d.rango
-           << " | Pos: (" << d.fila << "," << d.columna << ")";
-        return os;               
-    }
-
-
-
-
-    // Getters
-
-    string getNombre() const {
-        return nombre;
-    }
-
-    int getDanio() const {
-        return danio;
-    }
-
-    int getRango() const {
-        return rango;
-    }
-
-    int getNivel() const {
-        return nivel;
-    }
-
-    int getCosto() const {
-        return costo;
-    }
-
-    int getFila() const {
-        return fila;
-    }
-
-    int getColumna() const {
-        return columna;
-    }
-
-
+    std::string getNombre() const { return nombre; }
+    int getFila() const     { return fila; }
+    int getColumna() const  { return columna; }
+    int getDanio() const    { return danio; }
+    int getRango() const    { return rango; }
+    int getNivel() const    { return nivel; }
+    int getCosto() const    { return costo; }
 };
